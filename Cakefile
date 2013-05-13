@@ -13,8 +13,11 @@ pathToCssBin = "#{ pathToBin }css/"
 
 js_files = {
 	"bttrmultiselect/js/bttrmultiselect.jquery.js": [
+		"#{ pathToCoffeeSource }lib/AbstractSelector.coffee"
+		"#{ pathToCoffeeSource }lib/SelectorGroup.coffee"
+		"#{ pathToCoffeeSource }lib/SelectorOption.coffee"
+		"#{ pathToCoffeeSource }lib/BttrMultiselect.coffee"
 		"#{ pathToCoffeeSource }bttrmultiselect.jquery.coffee"
-		"#{ pathToCoffeeSource }lib/abstract-bttrmultiselect.coffee"
   ]
 }
 
@@ -22,15 +25,14 @@ css_file = "#{ pathToCssBin }/bttrmultiselect.css"
 less_file = "#{ pathToLessSource }bttrmultiselect.less"
 
 task 'build', 'merge and uglify BttrMultiselect .less and .coffee', ->
-	file_name = null; file_contents = null
 	try
 		# JS concat
 		for file_js, files_coffee of js_files
-			JScode = ''
+			JScode = CoffeeCode = ''
 			for file_coffee in files_coffee
 				file_name = file_coffee
-				file_contents = "#{fs.readFileSync file_coffee}"
-				JScode += CoffeeScript.compile file_contents
+				CoffeeCode += "#{fs.readFileSync file_coffee}\n"
+			JScode += CoffeeScript.compile CoffeeCode
 			fs.writeFileSync file_js, JScode
 
 		# CSS concat
@@ -48,16 +50,4 @@ task 'build', 'merge and uglify BttrMultiselect .less and .coffee', ->
 			fs.writeFileSync css_file.replace(/\.css$/,'.min.css'), CleanCSS.process "#{fs.readFileSync css_file}"
 
 	catch e
-		print_error e, file_name, file_contents
-
-print_error = (error, file_name, file_contents) ->
-	if error.location
-		console.log CoffeeScript.helpers.prettyErrorMessage(error, file_name, file_contents, true)
-	else
-		console.log """
-Error compiling #{file_name}:
-
-#{error.message}
-
-"""
-
+		console.log e.message

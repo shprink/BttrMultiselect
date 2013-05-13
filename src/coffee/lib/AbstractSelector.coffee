@@ -1,0 +1,3 @@
+class AbstractSelector
+	constructor: () ->
+		return

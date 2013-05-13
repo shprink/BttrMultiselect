@@ -3,12 +3,5 @@ $ = jQuery
 
 $.fn.extend({
   bttrmultiselect: (options) ->
-    return this
+    new BttrMultiselect(options);
 })
-
-class BttrMultiselect extends AbstractBttrMultiselect
-
-constructor: (@option={}) ->
-		return
-
-root.BttrMultiselect = BttrMultiselect
