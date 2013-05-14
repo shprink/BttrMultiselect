@@ -42,10 +42,13 @@
 
     options = {
       search: true,
-      group_selector: true
+      group_selector: true,
+      is_multiple: null
     };
 
-    function BttrMultiselect(options) {
+    function BttrMultiselect(select, options) {
+      this.select = select;
+      this.select.addClass("bttrmultiselect-done");
       $.extend(this.options, options);
       alert('e');
       return;
@@ -61,7 +64,13 @@
 
   $.fn.extend({
     bttrmultiselect: function(options) {
-      return new BttrMultiselect(options);
+      return this.each(function() {
+        var $this;
+        $this = $(this);
+        if (!$this.hasClass("bttrmultiselect-done")) {
+          return $this.data('bttrmultiselect', new BttrMultiselect($this, options));
+        }
+      });
     }
   });
 

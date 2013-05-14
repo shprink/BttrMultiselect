@@ -315,8 +315,9 @@
 	<script src="../bttrmultiselect/js/bttrmultiselect.jquery.min.js" type="text/javascript"></script>
 	<script type="text/javascript">
 	    var config = {
-		'bttrmultiselect-group': {},
-		'bttrmultiselect-no-group': {}
+		'#bttrmultiselect-group': {},
+		'#bttrmultiselect-no-group': {},
+		'select': {}
 	    }
 	    for (var selector in config) {
 		$(selector).bttrmultiselect(config[selector]);
