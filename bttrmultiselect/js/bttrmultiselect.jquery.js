@@ -38,7 +38,9 @@
   })(AbstractSelector);
 
   BttrMultiselect = (function() {
-    var options;
+    var checked, multiple, options, template;
+
+    template = "<div class='bttrmultiselect'>\n	<div class='bttrmultiselect-inner'>\n		<div class='bttrmultiselect-group'>\n			<div class='bttrmultiselect-header'></div>\n			<ul></ul>\n		</div>\n		<div class='bttrmultiselect-option'>\n			<div class='bttrmultiselect-header'></div>\n			<ul></ul>\n		</div>\n	</div>\n</div>";
 
     options = {
       search: true,
@@ -46,13 +48,55 @@
       is_multiple: null
     };
 
+    checked = [];
+
+    multiple = null;
+
     function BttrMultiselect(select, options) {
       this.select = select;
       this.select.addClass("bttrmultiselect-done");
+      multiple = this.select.attr('multiple');
+      if (typeof multiple !== 'undefined' && multiple !== false) {
+        this.multiple = true;
+      } else {
+        this.multiple = false;
+      }
+      this.refresh();
+      this.template;
       $.extend(this.options, options);
-      alert('e');
-      return;
     }
+
+    BttrMultiselect.prototype.open = function() {};
+
+    BttrMultiselect.prototype.close = function() {};
+
+    BttrMultiselect.prototype.refresh = function() {
+      var _this = this;
+      return this.select.find('option').each(function(index) {
+        var $this;
+        return $this = $(_this);
+      });
+    };
+
+    BttrMultiselect.prototype.checkAll = function() {};
+
+    BttrMultiselect.prototype.uncheckAll = function() {};
+
+    BttrMultiselect.prototype.enable = function() {};
+
+    BttrMultiselect.prototype.disable = function() {};
+
+    BttrMultiselect.prototype.getChecked = function() {
+      return this.checked;
+    };
+
+    BttrMultiselect.prototype.setOptions = function(options) {};
+
+    BttrMultiselect.prototype.destroy = function() {
+      return this.select.removeClass("bttrmultiselect-done");
+    };
+
+    BttrMultiselect.prototype._bindEvents = function() {};
 
     return BttrMultiselect;
 
