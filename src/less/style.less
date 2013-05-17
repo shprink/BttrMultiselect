@@ -1,21 +1,15 @@
-.rounded-corners (@radius: 5px) {
-  -webkit-border-radius: @radius;
-  -moz-border-radius: @radius;
-  -ms-border-radius: @radius;
-  -o-border-radius: @radius;
-  border-radius: @radius;
-}
-
-#header {
-    .rounded-corners;
-    color: @black;
-}
-#footer {
-    .rounded-corners(10px);
-}
-
 .bttrmultiselect{
-    
+	.rounded-corners;
+	height: 10px;
+	background-color: @black;
+}
+
+button.bttrmultiselect{
+	.rounded-corners;
+}
+
+div.bttrmultiselect{
+	.rounded-corners;
 }
 
 .bttrmultiselect-inner{

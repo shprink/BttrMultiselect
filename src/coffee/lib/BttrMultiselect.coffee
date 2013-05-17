@@ -1,32 +1,8 @@
 class BttrMultiselect
-	
-	template = """
-		<div class='bttrmultiselect'>
-			<div class='bttrmultiselect-inner'>
-				<div class='bttrmultiselect-group'>
-					<div class='bttrmultiselect-header'></div>
-					<ul></ul>
-				</div>
-				<div class='bttrmultiselect-option'>
-					<div class='bttrmultiselect-header'></div>
-					<ul></ul>
-				</div>
-			</div>
-		</div>
-		"""
-	
-	options = 
-		search : true
-		group_selector : true
-		is_multiple : null
-		
-	# local variables
-	checked = []
-	multiple = null
 
-	constructor: (@select, options) ->
-		# Make sure we instanciate once per element
-		@select.addClass "bttrmultiselect-done"
+	constructor: (@select, @options = {}) ->
+		# Set options
+		$.extend @options, @_getDefaultOptions(), @options
 		
 		# Is the select multiple?
 		multiple = @select.attr 'multiple'
@@ -34,13 +10,65 @@ class BttrMultiselect
 			@multiple = true;
 		else
 			@multiple = false;
+		
+		# We create our elements
+		@button = $(@_getTemplate().button)
+		@content = $(@_getTemplate().content)
+		
+		# Insert BttrMultiselect
+		@content.insertAfter(@select);
+		@button.insertAfter(@select);
+
+		@_bindEvents()
 
 		@select.hide()
 		this.refresh()
+
+		# Make sure we instanciate once per element
+		@select.addClass "bttrmultiselect-done"
 		
-		@template
-		# Set options
-		$.extend @options, options
+	###
+	Private Functions
+	###
+		
+	_getDefaultOptions: () ->
+		options = 
+			search : true
+			group_selector : true
+			is_multiple : null
+			
+	_getTemplate: () ->
+		template = 
+			button : """
+				<button type='button' class='bttrmultiselect'>
+					<span></span>
+					<b></b>
+				</button>
+				"""
+			content : """
+				<div class='bttrmultiselect'>
+					<div class='bttrmultiselect-inner'>
+						<div class='bttrmultiselect-group'>
+							<div class='bttrmultiselect-header'></div>
+							<ul></ul>
+						</div>
+						<div class='bttrmultiselect-option'>
+							<div class='bttrmultiselect-header'></div>
+							<ul></ul>
+						</div>
+					</div>
+				</div>
+			"""
+
+	_bindEvents: () ->
+		@button.on 'click', (event) ->
+			alert('ee')
+
+		#@content.on
+
+	###
+	public Functions
+	###
 		
 	open: () ->
 
@@ -59,11 +87,9 @@ class BttrMultiselect
 	disable: () ->
 	
 	getChecked: () ->
-		@checked
+		@select.find('option:checked')
 	
 	setOptions: (options) ->
 	
 	destroy: () ->
 		@select.removeClass "bttrmultiselect-done"
-	
-	_bindEvents: () ->
