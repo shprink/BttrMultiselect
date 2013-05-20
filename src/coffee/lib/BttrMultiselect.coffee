@@ -1,31 +1,32 @@
 class BttrMultiselect
 
 	constructor: (@select, @options = {}) ->
+		@$select = $(@select)
 		# Set options
 		$.extend @options, @_getDefaultOptions(), @options
-		
+
 		# Is the select multiple?
-		multiple = @select.attr 'multiple'
+		multiple = @$select.attr 'multiple'
 		if typeof multiple isnt 'undefined' and multiple isnt false
 			@multiple = true;
 		else
 			@multiple = false;
 		
 		# We create our elements
-		@button = $(@_getTemplate().button)
-		@content = $(@_getTemplate().content)
+		@$button = $(@_getTemplate().button)
+		@$content = $(@_getTemplate().content)
 		
 		# Insert BttrMultiselect
-		@content.insertAfter(@select);
-		@button.insertAfter(@select);
+		@$content.insertAfter(@$select);
+		@$button.insertAfter(@$select);
 
 		@_bindEvents()
 
-		@select.hide()
+		@$select.hide()
 		this.refresh()
 
 		# Make sure we instanciate once per element
-		@select.addClass "bttrmultiselect-done"
+		@$select.addClass "bttrmultiselect-done"
 		
 	###
 	Private Functions
@@ -52,7 +53,7 @@ class BttrMultiselect
 							<div class='bttrmultiselect-header'></div>
 							<ul></ul>
 						</div>
-						<div class='bttrmultiselect-option'>
+						<div class='bttrmultiselect-list'>
 							<div class='bttrmultiselect-header'></div>
 							<ul></ul>
 						</div>
@@ -61,7 +62,7 @@ class BttrMultiselect
 			"""
 
 	_bindEvents: () ->
-		@button.on 'click', (event) ->
+		@$button.on 'click', (event) ->
 			alert('ee')
 
 		#@content.on
@@ -75,8 +76,16 @@ class BttrMultiselect
 	close: () ->
 
 	refresh: () ->
-		@select.find('option').each (index) =>
-			$this = $(this)
+		# Initiate data
+		@data = root.SelectParser.select_to_array @select
+
+		if @options.group_selector
+			@selector_group = new SelectorGroup @$content.find('.bttrmultiselect-group ul'), @data
+		else
+			@selector_group = null;
+
+		@selector = new SelectorList @$content.find('.bttrmultiselect-list ul'), @data
+		console.log 'refreshing'
 
 	checkAll: () ->
 	
@@ -87,9 +96,9 @@ class BttrMultiselect
 	disable: () ->
 	
 	getChecked: () ->
-		@select.find('option:checked')
+		@$select.find('option:checked')
 	
 	setOptions: (options) ->
 	
 	destroy: () ->
-		@select.removeClass "bttrmultiselect-done"
+		@$select.removeClass "bttrmultiselect-done"
