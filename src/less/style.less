@@ -1,25 +1,48 @@
 .bttrmultiselect{
 	.rounded-corners;
-	height: 10px;
-	background-color: @black;
+	background-color: @grey;
+	display: inline-block;
+}
+
+.bttrmultiselect.to-group{
+	left: 0px;
+}
+
+.bttrmultiselect.to-list{
+	left: 200px;
 }
 
 button.bttrmultiselect{
 	.rounded-corners;
+	height: @buttonHeight;
 }
 
 div.bttrmultiselect{
 	.rounded-corners;
+    position: absolute;
+	height: 100px;
+	width: 100px;
 }
 
-.bttrmultiselect-inner{
-    
+.bttrmultiselect .bttrmultiselect-inner{
+    overflow: hidden;
+	min-height: 200px;
+    position: absolute;
+}
+
+.bttrmultiselect .bttrmultiselect-inner.transition{
+	transition: left 150ms ease-in-out 0s;
+}
+
+.bttrmultiselect .bttrmultiselect-group,
+.bttrmultiselect .bttrmultiselect-list{
+     position: absolute;
 }
 
 .bttrmultiselect .bttrmultiselect-group{
-    
+
 }
 
-.bttrmultiselect .bttrmultiselect-option{
-    
+.bttrmultiselect .bttrmultiselect-list{
+	left: 200px;
 }

@@ -19,6 +19,10 @@ class BttrMultiselect
 		# Insert BttrMultiselect
 		@$content.insertAfter(@$select);
 		@$button.insertAfter(@$select);
+		
+		# Set the size
+		@width = @$select.outerWidth()
+		@height = @$select.outerHeight()
 
 		@_bindEvents()
 
@@ -64,8 +68,18 @@ class BttrMultiselect
 	_bindEvents: () ->
 		@$button.on 'click', (event) ->
 			alert('ee')
-
-		#@content.on
+			
+	_setButtonWidth: () ->
+		@$button.css('width', @width);
+		
+	_setContentWidth: () ->
+		@$content.css('width', @width);
+		
+	_setContentPosition: () ->
+		pos = @$button.offset();
+		@$content.css
+			'top': pos.top + @height,
+			'left': pos.left
 
 	###
 	public Functions
@@ -76,15 +90,26 @@ class BttrMultiselect
 	close: () ->
 
 	refresh: () ->
+		# Set position 
+		@_setButtonWidth();
+		@_setContentWidth();
+		@_setContentPosition();
+
 		# Initiate data
 		@data = root.SelectParser.select_to_array @select
-
+		
 		if @options.group_selector
 			@selector_group = new SelectorGroup @$content.find('.bttrmultiselect-group ul'), @data
+			@$content.addClass('to-group');
+			@$content.find('.bttrmultiselect-group').css('width', @width);
+			@$content.find('.bttrmultiselect-list').css('left', @width);
 		else
+			@$content.addClass('to-list');
 			@selector_group = null;
 
 		@selector = new SelectorList @$content.find('.bttrmultiselect-list ul'), @data
+		@$content.find('.bttrmultiselect-list').css('width', @width);
+		
 		console.log 'refreshing'
 
 	checkAll: () ->

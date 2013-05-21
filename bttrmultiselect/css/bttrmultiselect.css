@@ -4,8 +4,14 @@
   -ms-border-radius: 5px;
   -o-border-radius: 5px;
   border-radius: 5px;
-  height: 10px;
-  background-color: #000000;
+  background-color: #cccccc;
+  display: inline-block;
+}
+.bttrmultiselect.to-group {
+  left: 0px;
+}
+.bttrmultiselect.to-list {
+  left: 200px;
 }
 button.bttrmultiselect {
   -webkit-border-radius: 5px;
@@ -13,6 +19,7 @@ button.bttrmultiselect {
   -ms-border-radius: 5px;
   -o-border-radius: 5px;
   border-radius: 5px;
+  height: 25px;
 }
 div.bttrmultiselect {
   -webkit-border-radius: 5px;
@@ -20,4 +27,23 @@ div.bttrmultiselect {
   -ms-border-radius: 5px;
   -o-border-radius: 5px;
   border-radius: 5px;
+  position: absolute;
+  height: 100px;
+  width: 100px;
+  top: 25px;
+}
+.bttrmultiselect .bttrmultiselect-inner {
+  overflow: hidden;
+  min-height: 200px;
+  position: absolute;
+}
+.bttrmultiselect .bttrmultiselect-inner.transition {
+  transition: left 150ms ease-in-out 0s;
+}
+.bttrmultiselect .bttrmultiselect-group,
+.bttrmultiselect .bttrmultiselect-list {
+  position: absolute;
+}
+.bttrmultiselect .bttrmultiselect-list {
+  left: 200px;
 }
