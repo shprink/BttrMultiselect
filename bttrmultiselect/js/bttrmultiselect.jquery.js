@@ -1,61 +1,14 @@
 (function() {
-  var $, AbstractSelector, BttrMultiselect, SelectParser, SelectorGroup, SelectorList, root, _ref, _ref1,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+  var $, BttrMultiselect, SelectParser, Selector, root;
 
-  AbstractSelector = (function() {
-    function AbstractSelector(element, data, multiple) {
+  Selector = (function() {
+    function Selector(element, data, multiple) {
       this.element = element;
       this.multiple = multiple;
       this.element.html(this.parse(data));
     }
 
-    AbstractSelector.prototype.addGroup = function(group) {
-      if (!group.disabled) {
-        group.dom_id = this.container_id + "_g_" + group.array_index;
-        return '<li id="' + group.dom_id + '" class="group-result">' + $("<div />").text(group.label).html() + '</li>';
-      } else {
-        return "";
-      }
-    };
-
-    return AbstractSelector;
-
-  })();
-
-  SelectorGroup = (function(_super) {
-    __extends(SelectorGroup, _super);
-
-    function SelectorGroup() {
-      _ref = SelectorGroup.__super__.constructor.apply(this, arguments);
-      return _ref;
-    }
-
-    SelectorGroup.prototype.parse = function(data) {
-      var content, node, _i, _len;
-      content = '';
-      for (_i = 0, _len = data.length; _i < _len; _i++) {
-        node = data[_i];
-        if (node.group) {
-          content += this.addGroup(node);
-        }
-      }
-      return content;
-    };
-
-    return SelectorGroup;
-
-  })(AbstractSelector);
-
-  SelectorList = (function(_super) {
-    __extends(SelectorList, _super);
-
-    function SelectorList() {
-      _ref1 = SelectorList.__super__.constructor.apply(this, arguments);
-      return _ref1;
-    }
-
-    SelectorList.prototype.parse = function(data) {
+    Selector.prototype.parse = function(data) {
       var content, i, node, _i, _len;
       console.log(data.length);
       content = '';
@@ -70,17 +23,18 @@
         }
       }
       return content;
-      /*
-      		if node.selected and @is_multiple
-      			this.choice_build data
-      		else if data.selected and not @is_multiple
-      			@selected_item.removeClass("chzn-default").find("span").text data.text
-      			this.single_deselect_control_build() if @allow_single_deselect
-      */
-
     };
 
-    SelectorList.prototype.addOption = function(option) {
+    Selector.prototype.addGroup = function(group) {
+      if (!group.disabled) {
+        group.dom_id = this.container_id + "_g_" + group.array_index;
+        return '<li id="' + group.dom_id + '" class="group-result">' + $("<div />").text(group.label).html() + '</li>';
+      } else {
+        return "";
+      }
+    };
+
+    Selector.prototype.addOption = function(option) {
       var classes, style;
       if (!option.disabled) {
         option.dom_id = this.container_id + "_o_" + option.array_index;
@@ -101,9 +55,9 @@
       }
     };
 
-    return SelectorList;
+    return Selector;
 
-  })(AbstractSelector);
+  })();
 
   /*
   Chosen Parser
@@ -130,7 +84,7 @@
     };
 
     SelectParser.prototype.add_group = function(group) {
-      var group_position, option, _i, _len, _ref2, _results;
+      var group_position, option, _i, _len, _ref, _results;
       group_position = this.parsed.length;
       this.parsed.push({
         array_index: group_position,
@@ -139,10 +93,10 @@
         children: 0,
         disabled: group.disabled
       });
-      _ref2 = group.childNodes;
+      _ref = group.childNodes;
       _results = [];
-      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-        option = _ref2[_i];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        option = _ref[_i];
         _results.push(this.add_option(option, group_position, group.disabled));
       }
       return _results;
@@ -182,11 +136,11 @@
   })();
 
   SelectParser.parse = function(select) {
-    var child, parser, _i, _len, _ref2;
+    var child, parser, _i, _len, _ref;
     parser = new SelectParser();
-    _ref2 = select.childNodes;
-    for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-      child = _ref2[_i];
+    _ref = select.childNodes;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      child = _ref[_i];
       parser.add_node(child);
     }
     return parser;
@@ -237,7 +191,7 @@
       var template;
       return template = {
         button: "<button type='button' class='bttrmultiselect'>\n	<span></span>\n	<b></b>\n</button>",
-        content: "<div class='bttrmultiselect'>\n	<div class='bttrmultiselect-inner'>\n		<div class='bttrmultiselect-group'>\n			<div class='bttrmultiselect-header'></div>\n			<ul></ul>\n		</div>\n		<div class='bttrmultiselect-list'>\n			<div class='bttrmultiselect-header'></div>\n			<ul></ul>\n		</div>\n	</div>\n</div>"
+        content: "<div class='bttrmultiselect'>\n	<div class='bttrmultiselect-inner'>\n		<div class='bttrmultiselect-header'></div>\n		<ul></ul>\n	</div>\n</div>"
       };
     };
 
@@ -264,14 +218,6 @@
       });
     };
 
-    BttrMultiselect.prototype._toGroup = function() {
-      return this.$content.addClass('to-group');
-    };
-
-    BttrMultiselect.prototype._toList = function() {
-      return this.$content.addClass('to-list');
-    };
-
     /*
     	public Functions
     */
@@ -289,18 +235,7 @@
       this._setButtonWidth();
       this._setContentWidth();
       this._setContentPosition();
-      if (this.hasGroup && this.options.group_selector) {
-        this.selector_group = new SelectorGroup(this.$content.find('.bttrmultiselect-group ul'), this.data, this.multiple);
-        this._toGroup();
-        this.$content.find('.bttrmultiselect-group').css('width', this.width);
-        this.$content.find('.bttrmultiselect-list').css('left', this.width);
-      } else {
-        this._toList();
-        this.selector_group = null;
-        this.$content.find('.bttrmultiselect-group').hide();
-      }
-      this.selector = new SelectorList(this.$content.find('.bttrmultiselect-list ul'), this.data, this.multiple);
-      this.$content.find('.bttrmultiselect-list').css('width', this.width);
+      this.selector = new Selector(this.$content.find('ul'), this.data, this.multiple);
       return console.log('refreshing');
     };
 

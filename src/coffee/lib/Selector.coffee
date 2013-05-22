@@ -1,4 +1,7 @@
-class SelectorList extends AbstractSelector
+class Selector
+	constructor: (@element, data, @multiple) ->
+		@element.html this.parse data
+		
 	parse: (data)->
 		console.log data.length;
 		content = ''
@@ -11,14 +14,12 @@ class SelectorList extends AbstractSelector
 				content += @addOption node
 		return content
 
-		###
-		if node.selected and @is_multiple
-			this.choice_build data
-		else if data.selected and not @is_multiple
-			@selected_item.removeClass("chzn-default").find("span").text data.text
-			this.single_deselect_control_build() if @allow_single_deselect
-		###
-
+	addGroup: (group) ->
+		if not group.disabled
+      group.dom_id = @container_id + "_g_" + group.array_index
+      '<li id="' + group.dom_id + '" class="group-result">' + $("<div />").text(group.label).html() + '</li>'
+    else
+      ""
 	addOption: (option) ->
 		if not option.disabled
       option.dom_id = @container_id + "_o_" + option.array_index

@@ -25,31 +25,3 @@ div.bttrmultiselect {
   height: 200px;
   overflow: auto;
 }
-/*
-div.bttrmultiselect.to-list .bttrmultiselect-group,
-div.bttrmultiselect.to-group .bttrmultiselect-list{
-    display: none;
-}
-*/
-.bttrmultiselect .bttrmultiselect-inner {
-  overflow: hidden;
-}
-.bttrmultiselect .bttrmultiselect-inner > div {
-  overflow: auto;
-  position: absolute;
-}
-.bttrmultiselect .bttrmultiselect-inner.transition {
-  transition: left 150ms ease-in-out 0s;
-}
-.bttrmultiselect .bttrmultiselect-group,
-.bttrmultiselect .bttrmultiselect-list {
-  -webkit-transition-duration: 400ms;
-  -webkit-transition-property: width, background;
-  -webkit-transition-timing-function: ease;
-  -moz-transition-duration: 400ms;
-  -moz-transition-property: width, background;
-  -moz-transition-timing-function: ease;
-  -o-transition-duration: 400ms;
-  -o-transition-property: width, background;
-  -o-transition-timing-function: ease;
-}

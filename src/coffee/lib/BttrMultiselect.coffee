@@ -53,14 +53,8 @@ class BttrMultiselect
 			content : """
 				<div class='bttrmultiselect'>
 					<div class='bttrmultiselect-inner'>
-						<div class='bttrmultiselect-group'>
-							<div class='bttrmultiselect-header'></div>
-							<ul></ul>
-						</div>
-						<div class='bttrmultiselect-list'>
-							<div class='bttrmultiselect-header'></div>
-							<ul></ul>
-						</div>
+						<div class='bttrmultiselect-header'></div>
+						<ul></ul>
 					</div>
 				</div>
 			"""
@@ -82,12 +76,6 @@ class BttrMultiselect
 		@$content.css
 			'top': pos.top + @height,
 			'left': pos.left
-			
-	_toGroup: () ->
-		@$content.addClass('to-group');
-
-	_toList: () ->
-		@$content.addClass('to-list');
 
 	###
 	public Functions
@@ -108,19 +96,8 @@ class BttrMultiselect
 		@_setButtonWidth();
 		@_setContentWidth();
 		@_setContentPosition();
-		
-		if @hasGroup and @options.group_selector
-			@selector_group = new SelectorGroup @$content.find('.bttrmultiselect-group ul'), @data, @multiple
-			@_toGroup()
-			@$content.find('.bttrmultiselect-group').css('width', @width);
-			@$content.find('.bttrmultiselect-list').css('left', @width);
-		else
-			@_toList()
-			@selector_group = null;
-			@$content.find('.bttrmultiselect-group').hide();
 
-		@selector = new SelectorList @$content.find('.bttrmultiselect-list ul'), @data, @multiple
-		@$content.find('.bttrmultiselect-list').css('width', @width);
+		@selector = new Selector @$content.find('ul'), @data, @multiple
 		
 		console.log 'refreshing'
 
