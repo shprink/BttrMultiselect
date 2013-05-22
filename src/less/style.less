@@ -1,32 +1,32 @@
 .bttrmultiselect{
-	.rounded-corners;
-	background-color: @grey;
-	display: inline-block;
-}
-
-.bttrmultiselect.to-group{
-	left: 0px;
-}
-
-.bttrmultiselect.to-list{
-	left: 200px;
+    .rounded-corners;
+    background-color: @grey;
+    display: inline-block;
 }
 
 button.bttrmultiselect{
-	.rounded-corners;
-	height: @buttonHeight;
+    .rounded-corners;
+    height: @buttonHeight;
 }
 
 div.bttrmultiselect{
-	.rounded-corners;
+    .rounded-corners;
     position: absolute;
-	height: 100px;
-	width: 100px;
+    height: @selector-min-height;
+    overflow: auto;
 }
-
+/*
+div.bttrmultiselect.to-list .bttrmultiselect-group,
+div.bttrmultiselect.to-group .bttrmultiselect-list{
+    display: none;
+}
+*/
 .bttrmultiselect .bttrmultiselect-inner{
     overflow: hidden;
-	min-height: 200px;
+}
+
+.bttrmultiselect .bttrmultiselect-inner > div{
+    overflow: auto;
     position: absolute;
 }
 
@@ -36,7 +36,15 @@ div.bttrmultiselect{
 
 .bttrmultiselect .bttrmultiselect-group,
 .bttrmultiselect .bttrmultiselect-list{
-     position: absolute;
+    -webkit-transition-duration: 400ms;
+    -webkit-transition-property: width, background;
+    -webkit-transition-timing-function: ease;
+    -moz-transition-duration: 400ms;
+    -moz-transition-property: width, background;
+    -moz-transition-timing-function: ease;
+    -o-transition-duration: 400ms;
+    -o-transition-property: width, background;
+    -o-transition-timing-function: ease;
 }
 
 .bttrmultiselect .bttrmultiselect-group{
@@ -44,5 +52,5 @@ div.bttrmultiselect{
 }
 
 .bttrmultiselect .bttrmultiselect-list{
-	left: 200px;
+
 }

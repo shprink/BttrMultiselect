@@ -1,5 +1,5 @@
 class AbstractSelector
-	constructor: (@element, data) ->
+	constructor: (@element, data, @multiple) ->
 		@element.html this.parse data
 
 	addGroup: (group) ->

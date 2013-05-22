@@ -7,10 +7,13 @@ class SelectParser
   constructor: ->
     @options_index = 0
     @parsed = []
+    @hasGroup = false
 
   add_node: (child) ->
     if child.nodeName.toUpperCase() is "OPTGROUP"
       this.add_group child
+      if !child.disabled and !@hasGroup
+        @hasGroup = true
     else
       this.add_option child
 
@@ -47,9 +50,9 @@ class SelectParser
           empty: true
       @options_index += 1
 
-SelectParser.select_to_array = (select) ->
+SelectParser.parse = (select) ->
   parser = new SelectParser()
   parser.add_node( child ) for child in select.childNodes
-  parser.parsed
+  parser
 
 this.SelectParser = SelectParser

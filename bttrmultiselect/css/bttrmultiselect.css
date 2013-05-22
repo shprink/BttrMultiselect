@@ -7,12 +7,6 @@
   background-color: #cccccc;
   display: inline-block;
 }
-.bttrmultiselect.to-group {
-  left: 0px;
-}
-.bttrmultiselect.to-list {
-  left: 200px;
-}
 button.bttrmultiselect {
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
@@ -28,13 +22,20 @@ div.bttrmultiselect {
   -o-border-radius: 5px;
   border-radius: 5px;
   position: absolute;
-  height: 100px;
-  width: 100px;
-  top: 25px;
+  height: 200px;
+  overflow: auto;
 }
+/*
+div.bttrmultiselect.to-list .bttrmultiselect-group,
+div.bttrmultiselect.to-group .bttrmultiselect-list{
+    display: none;
+}
+*/
 .bttrmultiselect .bttrmultiselect-inner {
   overflow: hidden;
-  min-height: 200px;
+}
+.bttrmultiselect .bttrmultiselect-inner > div {
+  overflow: auto;
   position: absolute;
 }
 .bttrmultiselect .bttrmultiselect-inner.transition {
@@ -42,8 +43,13 @@ div.bttrmultiselect {
 }
 .bttrmultiselect .bttrmultiselect-group,
 .bttrmultiselect .bttrmultiselect-list {
-  position: absolute;
-}
-.bttrmultiselect .bttrmultiselect-list {
-  left: 200px;
+  -webkit-transition-duration: 400ms;
+  -webkit-transition-property: width, background;
+  -webkit-transition-timing-function: ease;
+  -moz-transition-duration: 400ms;
+  -moz-transition-property: width, background;
+  -moz-transition-timing-function: ease;
+  -o-transition-duration: 400ms;
+  -o-transition-property: width, background;
+  -o-transition-timing-function: ease;
 }
