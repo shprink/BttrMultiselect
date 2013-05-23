@@ -2,25 +2,25 @@
     .rounded-corners;
     background-color: @grey;
     display: inline-block;
-}
 
+    .bttrmultiselect-inner{
+	position: relative;
+    }
 
-.bttrmultiselect .bttrmultiselect-inner{
+    .bttrmultiselect-button{
+	.rounded-corners;
+	height: @buttonHeight;
+	border: 1px solid #333;
+	display: block;
+	width: 100%;
+    }
 
-}
-
-.bttrmultiselect a.bttrmultiselect-button{
-    .rounded-corners;
-    height: @buttonHeight;
-}
-
-.bttrmultiselect div.bttrmultiselect-content{
-    .rounded-corners;
-    position: absolute;
-    height: @selector-min-height;
-    overflow: auto;
+    .bttrmultiselect-content{
+	.rounded-corners;
+	position: absolute;
 	visibility: hidden;
-	margin-top:@buttonHeight + 5;
+	margin-top: -1px;
+	width: 100%;
 	opacity: 0;
 	.scale(0.8);
 	-webkit-transition: 0.3s all cubic-bezier(0.250, 0.460, 0.450, 0.940);
@@ -28,10 +28,43 @@
 	-ms-transition: 0.3s all cubic-bezier(0.250, 0.460, 0.450, 0.940);
 	-o-transition: 0.3s all cubic-bezier(0.250, 0.460, 0.450, 0.940);
 	transition: 0.3s all cubic-bezier(0.250, 0.460, 0.450, 0.940);
+    }
+
+    .bttrmultiselect-search,
+    .bttrmultiselect-list{
+	padding: 0px 5px;
+    }
+
+    .bttrmultiselect-list{
+	height: @selector-min-height;
+	overflow: auto;
+	cursor: pointer;
+	margin: 0px;
+    }
+
+    .bttr-group,
+    .bttr-option{
+
+    }
+
+    .bttr-group.bttr-group-disabled,
+    .bttr-option.bttr-option-disabled{
+	color: #333;
+	background-color: #CCC;
+	cursor: default;
+    }
+
+    .bttr-option{
+	padding: 5px 20px;
+    }
+
+    .bttr-group{
+	padding: 5px 10px;
+    }
 }
 
-bttrmultiselect.on div.bttrmultiselect-content{
-	visibility: visible;
-	opacity: 1;
-	.scale;
+.bttrmultiselect.on div.bttrmultiselect-content{
+    visibility: visible;
+    opacity: 1;
+    .scale;
 }

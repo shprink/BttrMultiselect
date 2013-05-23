@@ -67,15 +67,13 @@ class BttrMultiselect
 				@close()
 			else
 				@open()
-			
+
 	_setButtonWidth: () ->
 		@$button.css('width', @width);
-		
+
 	_setContentWidth: () ->
 		@$bttrSelect.css('width', @width);
-		#if @hasGroup and @options.group_selector
-			#@$content.find('.bttrmultiselect-inner').css('width', 2 * @width);
-		
+
 	_setContentPosition: () ->
 		pos = @$button.offset();
 		@$bttrSelect.css
@@ -85,7 +83,7 @@ class BttrMultiselect
 	###
 	public Functions
 	###
-		
+
 	open: () ->
 		@$bttrSelect.addClass 'on'
 		@opened = true
@@ -99,7 +97,8 @@ class BttrMultiselect
 		# Initiate data
 		selectParser = root.SelectParser.parse @select
 		@data = selectParser.parsed
-		@hasGroup = selectParser.hasGroup
+		
+		console.log @data
 
 		# Set position 
 		@_setButtonWidth();

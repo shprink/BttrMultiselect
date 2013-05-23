@@ -10,7 +10,6 @@
 
     Selector.prototype.parse = function(data) {
       var content, i, node, _i, _len;
-
       content = '';
       i = 0;
       for (_i = 0, _len = data.length; _i < _len; _i++) {
@@ -26,34 +25,27 @@
     };
 
     Selector.prototype.addGroup = function(group) {
-      if (!group.disabled) {
-        group.dom_id = this.container_id + "_g_" + group.array_index;
-        return '<li id="' + group.dom_id + '" class="group-result">' + $("<div />").text(group.label).html() + '</li>';
-      } else {
-        return "";
+      var classes;
+      classes = [];
+      classes.push("bttr-group");
+      if (group.disabled) {
+        classes.push("bttr-group-disabled");
       }
+      return "<li data-index=\"" + group.array_index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div>" + group.label + "<span>" + group.children + "</span></div>\n</li>";
     };
 
     Selector.prototype.addOption = function(option) {
-      var classes, style;
-
-      if (!option.disabled) {
-        option.dom_id = this.container_id + "_o_" + option.array_index;
-        classes = option.selected && this.is_multiple ? [] : ["active-result"];
-        if (option.selected) {
-          classes.push("result-selected");
-        }
-        if (option.group_array_index != null) {
-          classes.push("group-option");
-        }
-        if (option.classes !== "") {
-          classes.push(option.classes);
-        }
-        style = option.style.cssText !== "" ? " style=\"" + option.style + "\"" : "";
-        return '<li id="' + option.dom_id + '" class="' + classes.join(' ') + '"' + style + '>' + option.html + '</li>';
-      } else {
-        return "";
+      var classes;
+      option.dom_id = this.container_id + "_o_" + option.array_index;
+      classes = [];
+      classes.push("bttr-option");
+      if (option.disabled) {
+        classes.push("bttr-option-disabled");
       }
+      if (option.selected) {
+        classes.push("bttr-option-selected");
+      }
+      return "<li data-index=\"" + option.array_index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div>" + option.html + "</div>\n</li>";
     };
 
     return Selector;
@@ -86,7 +78,6 @@
 
     SelectParser.prototype.add_group = function(group) {
       var group_position, option, _i, _len, _ref, _results;
-
       group_position = this.parsed.length;
       this.parsed.push({
         array_index: group_position,
@@ -139,7 +130,6 @@
 
   SelectParser.parse = function(select) {
     var child, parser, _i, _len, _ref;
-
     parser = new SelectParser();
     _ref = select.childNodes;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -154,7 +144,6 @@
   BttrMultiselect = (function() {
     function BttrMultiselect(select, options) {
       var multiple;
-
       this.select = select;
       this.options = options != null ? options : {};
       this.$select = $(this.select);
@@ -185,7 +174,6 @@
 
     BttrMultiselect.prototype._getDefaultOptions = function() {
       var options;
-
       return options = {
         search: true,
         group_selector: true
@@ -198,7 +186,6 @@
 
     BttrMultiselect.prototype._bindEvents = function() {
       var _this = this;
-
       return this.$button.on('click', function(event) {
         if (_this.opened) {
           return _this.close();
@@ -218,7 +205,6 @@
 
     BttrMultiselect.prototype._setContentPosition = function() {
       var pos;
-
       pos = this.$button.offset();
       return this.$bttrSelect.css({
         'top': pos.top,
@@ -243,10 +229,9 @@
 
     BttrMultiselect.prototype.refresh = function() {
       var selectParser;
-
       selectParser = root.SelectParser.parse(this.select);
       this.data = selectParser.parsed;
-      this.hasGroup = selectParser.hasGroup;
+      console.log(this.data);
       this._setButtonWidth();
       this._setContentWidth();
       this._setContentPosition();
@@ -284,7 +269,6 @@
     bttrmultiselect: function(options) {
       return this.each(function() {
         var $this;
-
         $this = $(this);
         if (!$this.hasClass("bttrmultiselect-done")) {
           return $this.data('bttrmultiselect', new BttrMultiselect(this, options));

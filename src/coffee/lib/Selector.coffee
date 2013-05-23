@@ -14,22 +14,26 @@ class Selector
 		return content
 
 	addGroup: (group) ->
-		if not group.disabled
-      group.dom_id = @container_id + "_g_" + group.array_index
-      '<li id="' + group.dom_id + '" class="group-result">' + $("<div />").text(group.label).html() + '</li>'
-    else
-      ""
+		classes = []
+		classes.push "bttr-group"
+		classes.push "bttr-group-disabled" if group.disabled
+
+		"""
+		<li data-index="#{ group.array_index }" class="#{ classes.join(' ') }">
+			<div>#{ group.label }<span>#{ group.children }</span></div>
+		</li>
+		"""
+
 	addOption: (option) ->
-		if not option.disabled
-      option.dom_id = @container_id + "_o_" + option.array_index
+		option.dom_id = @container_id + "_o_" + option.array_index
 
-      classes = if option.selected and @is_multiple then [] else ["active-result"]
-      classes.push "result-selected" if option.selected
-      classes.push "group-option" if option.group_array_index?
-      classes.push option.classes if option.classes != ""
+		classes = []
+		classes.push "bttr-option"
+		classes.push "bttr-option-disabled" if option.disabled
+		classes.push "bttr-option-selected" if option.selected
 
-      style = if option.style.cssText != "" then " style=\"#{option.style}\"" else ""
-
-      '<li id="' + option.dom_id + '" class="' + classes.join(' ') + '"'+style+'>' + option.html + '</li>'
-    else
-      ""		
+		"""
+		<li data-index="#{ option.array_index }" class="#{ classes.join(' ') }">
+			<div>#{ option.html }</div>
+		</li>
+		"""
