@@ -1,5 +1,6 @@
 (function() {
-  var $, BttrMultiselect, SelectParser, Selector, root;
+  var $, BttrMultiselect, SelectParser, Selector, root,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   Selector = (function() {
     function Selector(element, data, multiple) {
@@ -146,6 +147,7 @@
       var multiple;
       this.select = select;
       this.options = options != null ? options : {};
+      this._testGlobalClick = __bind(this._testGlobalClick, this);
       this.$select = $(this.select);
       $.extend(this.options, this._getDefaultOptions(), this.options);
       multiple = this.$select.attr('multiple');
@@ -156,7 +158,7 @@
       }
       this.$bttrSelect = $(this._getTemplate());
       this.$button = this.$bttrSelect.find('a.bttrmultiselect-button');
-      this.$search = this.$bttrSelect.find('div.bttrmultiselect-search');
+      this.$search = this.$bttrSelect.find('div.bttrmultiselect-search input');
       this.$list = this.$bttrSelect.find('ul.bttrmultiselect-list');
       this.$bttrSelect.insertAfter(this.$select);
       this.width = this.$select.outerWidth();
@@ -186,11 +188,19 @@
 
     BttrMultiselect.prototype._bindEvents = function() {
       var _this = this;
-      return this.$button.on('click', function(event) {
+      this.$button.on('click', function(event) {
         if (_this.opened) {
           return _this.close();
         } else {
           return _this.open();
+        }
+      });
+      return this.$bttrSelect.bind("transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd", function(event) {
+        if (_this.opened) {
+          return _this.$search.focus();
+        } else {
+          _this.$search.blur();
+          return _this._resetSearch();
         }
       });
     };
@@ -212,6 +222,17 @@
       });
     };
 
+    BttrMultiselect.prototype._resetSearch = function() {
+      return this.$search.val('');
+    };
+
+    BttrMultiselect.prototype._testGlobalClick = function(event) {
+      console.log(event.target);
+      if (!this.$bttrSelect.find(event.target).length) {
+        return this.close();
+      }
+    };
+
     /*
     	public Functions
     */
@@ -219,11 +240,13 @@
 
     BttrMultiselect.prototype.open = function() {
       this.$bttrSelect.addClass('on');
+      $(document).click(this._testGlobalClick);
       return this.opened = true;
     };
 
     BttrMultiselect.prototype.close = function() {
       this.$bttrSelect.removeClass('on');
+      $(document).unbind('click', this._testGlobalClick);
       return this.opened = false;
     };
 

@@ -15,7 +15,7 @@ class BttrMultiselect
 		# We create our elements
 		@$bttrSelect = $(@_getTemplate())
 		@$button = @$bttrSelect.find('a.bttrmultiselect-button')
-		@$search = @$bttrSelect.find('div.bttrmultiselect-search')
+		@$search = @$bttrSelect.find('div.bttrmultiselect-search input')
 		@$list = @$bttrSelect.find('ul.bttrmultiselect-list')
 		
 		# Insert BttrMultiselect
@@ -67,6 +67,14 @@ class BttrMultiselect
 				@close()
 			else
 				@open()
+		
+		# Focus after CSS transition
+		@$bttrSelect.bind "transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd", (event) =>
+			if @opened
+				@$search.focus()
+			else
+				@$search.blur()
+				@_resetSearch()
 
 	_setButtonWidth: () ->
 		@$button.css('width', @width);
@@ -79,6 +87,13 @@ class BttrMultiselect
 		@$bttrSelect.css
 			'top': pos.top,
 			'left': pos.left
+			
+	_resetSearch: () ->
+		@$search.val ''
+		
+	_testGlobalClick: (event) =>
+		if not @$bttrSelect.find(event.target).length
+      @close()
 
 	###
 	public Functions
@@ -86,10 +101,12 @@ class BttrMultiselect
 
 	open: () ->
 		@$bttrSelect.addClass 'on'
+		$(document).click @_testGlobalClick
 		@opened = true
 
 	close: () ->
 		@$bttrSelect.removeClass 'on'
+		$(document).unbind 'click', @_testGlobalClick
 		@opened = false
 
 	refresh: () ->
