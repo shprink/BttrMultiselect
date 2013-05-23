@@ -4,18 +4,34 @@
     display: inline-block;
 }
 
-button.bttrmultiselect{
+
+.bttrmultiselect .bttrmultiselect-inner{
+
+}
+
+.bttrmultiselect a.bttrmultiselect-button{
     .rounded-corners;
     height: @buttonHeight;
 }
 
-div.bttrmultiselect{
+.bttrmultiselect div.bttrmultiselect-content{
     .rounded-corners;
     position: absolute;
     height: @selector-min-height;
     overflow: auto;
+	visibility: hidden;
+	margin-top:@buttonHeight + 5;
+	opacity: 0;
+	.scale(0.8);
+	-webkit-transition: 0.3s all cubic-bezier(0.250, 0.460, 0.450, 0.940);
+	-moz-transition: 0.3s all cubic-bezier(0.250, 0.460, 0.450, 0.940);
+	-ms-transition: 0.3s all cubic-bezier(0.250, 0.460, 0.450, 0.940);
+	-o-transition: 0.3s all cubic-bezier(0.250, 0.460, 0.450, 0.940);
+	transition: 0.3s all cubic-bezier(0.250, 0.460, 0.450, 0.940);
 }
 
-.bttrmultiselect .bttrmultiselect-inner{
-
+bttrmultiselect.on div.bttrmultiselect-content{
+	visibility: visible;
+	opacity: 1;
+	.scale;
 }

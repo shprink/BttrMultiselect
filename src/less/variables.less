@@ -2,10 +2,20 @@
 @grey: #CCC;
 @buttonHeight: 25px;
 @selector-min-height: 200px;
+
+
 .rounded-corners (@radius: 5px) {
   -webkit-border-radius: @radius;
   -moz-border-radius: @radius;
   -ms-border-radius: @radius;
   -o-border-radius: @radius;
   border-radius: @radius;
+}
+
+.scale (@size: 1){
+	-webkit-transform: scale( @size );
+	-moz-transform: scale( @size );
+	-ms-transform: scale( @size );
+	-o-transform: scale( @size );
+	transform: scale( @size );
 }

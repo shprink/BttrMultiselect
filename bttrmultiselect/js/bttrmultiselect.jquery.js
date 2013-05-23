@@ -10,7 +10,7 @@
 
     Selector.prototype.parse = function(data) {
       var content, i, node, _i, _len;
-      console.log(data.length);
+
       content = '';
       i = 0;
       for (_i = 0, _len = data.length; _i < _len; _i++) {
@@ -36,6 +36,7 @@
 
     Selector.prototype.addOption = function(option) {
       var classes, style;
+
       if (!option.disabled) {
         option.dom_id = this.container_id + "_o_" + option.array_index;
         classes = option.selected && this.is_multiple ? [] : ["active-result"];
@@ -85,6 +86,7 @@
 
     SelectParser.prototype.add_group = function(group) {
       var group_position, option, _i, _len, _ref, _results;
+
       group_position = this.parsed.length;
       this.parsed.push({
         array_index: group_position,
@@ -137,6 +139,7 @@
 
   SelectParser.parse = function(select) {
     var child, parser, _i, _len, _ref;
+
     parser = new SelectParser();
     _ref = select.childNodes;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -151,26 +154,28 @@
   BttrMultiselect = (function() {
     function BttrMultiselect(select, options) {
       var multiple;
+
       this.select = select;
       this.options = options != null ? options : {};
       this.$select = $(this.select);
       $.extend(this.options, this._getDefaultOptions(), this.options);
       multiple = this.$select.attr('multiple');
       if (typeof multiple !== 'undefined' && multiple !== false) {
-        this.multiple = true;
+        this.isMultiple = true;
       } else {
-        this.multiple = false;
+        this.isMultiple = false;
       }
-      this.$button = $(this._getTemplate().button);
-      this.$content = $(this._getTemplate().content);
-      this.$content.insertAfter(this.$select);
-      this.$button.insertAfter(this.$select);
+      this.$bttrSelect = $(this._getTemplate());
+      this.$button = this.$bttrSelect.find('a.bttrmultiselect-button');
+      this.$search = this.$bttrSelect.find('div.bttrmultiselect-search');
+      this.$list = this.$bttrSelect.find('ul.bttrmultiselect-list');
+      this.$bttrSelect.insertAfter(this.$select);
       this.width = this.$select.outerWidth();
-      this.height = this.$select.outerHeight();
       this._bindEvents();
       this.$select.hide();
       this.refresh();
       this.$select.addClass("bttrmultiselect-done");
+      this.opened = false;
     }
 
     /*
@@ -180,24 +185,26 @@
 
     BttrMultiselect.prototype._getDefaultOptions = function() {
       var options;
+
       return options = {
         search: true,
-        group_selector: true,
-        is_multiple: null
+        group_selector: true
       };
     };
 
     BttrMultiselect.prototype._getTemplate = function() {
-      var template;
-      return template = {
-        button: "<button type='button' class='bttrmultiselect'>\n	<span></span>\n	<b></b>\n</button>",
-        content: "<div class='bttrmultiselect'>\n	<div class='bttrmultiselect-inner'>\n		<div class='bttrmultiselect-header'></div>\n		<ul></ul>\n	</div>\n</div>"
-      };
+      return "<div class='bttrmultiselect'>\n	<div class='bttrmultiselect-inner'>\n		<a href=\"javascript:void(0)\" class='bttrmultiselect-button'>\n			<span class=\"bttrmultiselect-selected\"></span>\n			<b></b>\n		</a>\n		<div class='bttrmultiselect-content'>\n			<div class='bttrmultiselect-search'>\n				<input type=\"text\" />\n			</div>\n			<ul class='bttrmultiselect-list'></ul>\n		</div>\n	</div>\n</div>";
     };
 
     BttrMultiselect.prototype._bindEvents = function() {
+      var _this = this;
+
       return this.$button.on('click', function(event) {
-        return alert('ee');
+        if (_this.opened) {
+          return _this.close();
+        } else {
+          return _this.open();
+        }
       });
     };
 
@@ -206,14 +213,15 @@
     };
 
     BttrMultiselect.prototype._setContentWidth = function() {
-      return this.$content.css('width', this.width);
+      return this.$bttrSelect.css('width', this.width);
     };
 
     BttrMultiselect.prototype._setContentPosition = function() {
       var pos;
+
       pos = this.$button.offset();
-      return this.$content.css({
-        'top': pos.top + this.height,
+      return this.$bttrSelect.css({
+        'top': pos.top,
         'left': pos.left
       });
     };
@@ -223,19 +231,26 @@
     */
 
 
-    BttrMultiselect.prototype.open = function() {};
+    BttrMultiselect.prototype.open = function() {
+      this.$bttrSelect.addClass('on');
+      return this.opened = true;
+    };
 
-    BttrMultiselect.prototype.close = function() {};
+    BttrMultiselect.prototype.close = function() {
+      this.$bttrSelect.removeClass('on');
+      return this.opened = false;
+    };
 
     BttrMultiselect.prototype.refresh = function() {
       var selectParser;
+
       selectParser = root.SelectParser.parse(this.select);
       this.data = selectParser.parsed;
       this.hasGroup = selectParser.hasGroup;
       this._setButtonWidth();
       this._setContentWidth();
       this._setContentPosition();
-      this.selector = new Selector(this.$content.find('ul'), this.data, this.multiple);
+      this.selector = new Selector(this.$list, this.data, this.isMultiple);
       return console.log('refreshing');
     };
 
@@ -269,6 +284,7 @@
     bttrmultiselect: function(options) {
       return this.each(function() {
         var $this;
+
         $this = $(this);
         if (!$this.hasClass("bttrmultiselect-done")) {
           return $this.data('bttrmultiselect', new BttrMultiselect(this, options));

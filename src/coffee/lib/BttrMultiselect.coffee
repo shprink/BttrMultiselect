@@ -8,21 +8,21 @@ class BttrMultiselect
 		# Is the select multiple?
 		multiple = @$select.attr 'multiple'
 		if typeof multiple isnt 'undefined' and multiple isnt false
-			@multiple = true;
+			@isMultiple = true;
 		else
-			@multiple = false;
+			@isMultiple = false;
 		
 		# We create our elements
-		@$button = $(@_getTemplate().button)
-		@$content = $(@_getTemplate().content)
+		@$bttrSelect = $(@_getTemplate())
+		@$button = @$bttrSelect.find('a.bttrmultiselect-button')
+		@$search = @$bttrSelect.find('div.bttrmultiselect-search')
+		@$list = @$bttrSelect.find('ul.bttrmultiselect-list')
 		
 		# Insert BttrMultiselect
-		@$content.insertAfter(@$select);
-		@$button.insertAfter(@$select);
+		@$bttrSelect.insertAfter(@$select);
 		
 		# Set the size
 		@width = @$select.outerWidth()
-		@height = @$select.outerHeight()
 
 		@_bindEvents()
 
@@ -32,6 +32,9 @@ class BttrMultiselect
 		# Make sure we instanciate once per element
 		@$select.addClass "bttrmultiselect-done"
 		
+		# close the content
+		@opened = false
+		
 	###
 	Private Functions
 	###
@@ -40,41 +43,43 @@ class BttrMultiselect
 		options = 
 			search : true
 			group_selector : true
-			is_multiple : null
 			
 	_getTemplate: () ->
-		template = 
-			button : """
-				<button type='button' class='bttrmultiselect'>
-					<span></span>
-					<b></b>
-				</button>
-				"""
-			content : """
-				<div class='bttrmultiselect'>
+		"""<div class='bttrmultiselect'>
 					<div class='bttrmultiselect-inner'>
-						<div class='bttrmultiselect-header'></div>
-						<ul></ul>
+						<a href="javascript:void(0)" class='bttrmultiselect-button'>
+							<span class="bttrmultiselect-selected"></span>
+							<b></b>
+						</a>
+						<div class='bttrmultiselect-content'>
+							<div class='bttrmultiselect-search'>
+								<input type="text" />
+							</div>
+							<ul class='bttrmultiselect-list'></ul>
+						</div>
 					</div>
 				</div>
 			"""
 
 	_bindEvents: () ->
-		@$button.on 'click', (event) ->
-			alert('ee')
+		@$button.on 'click', (event) =>
+			if @opened
+				@close()
+			else
+				@open()
 			
 	_setButtonWidth: () ->
 		@$button.css('width', @width);
 		
 	_setContentWidth: () ->
-		@$content.css('width', @width);
+		@$bttrSelect.css('width', @width);
 		#if @hasGroup and @options.group_selector
 			#@$content.find('.bttrmultiselect-inner').css('width', 2 * @width);
 		
 	_setContentPosition: () ->
 		pos = @$button.offset();
-		@$content.css
-			'top': pos.top + @height,
+		@$bttrSelect.css
+			'top': pos.top,
 			'left': pos.left
 
 	###
@@ -82,8 +87,12 @@ class BttrMultiselect
 	###
 		
 	open: () ->
+		@$bttrSelect.addClass 'on'
+		@opened = true
 
 	close: () ->
+		@$bttrSelect.removeClass 'on'
+		@opened = false
 
 	refresh: () ->
 
@@ -97,7 +106,7 @@ class BttrMultiselect
 		@_setContentWidth();
 		@_setContentPosition();
 
-		@selector = new Selector @$content.find('ul'), @data, @multiple
+		@selector = new Selector @$list, @data, @isMultiple
 		
 		console.log 'refreshing'
 

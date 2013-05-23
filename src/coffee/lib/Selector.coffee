@@ -3,7 +3,6 @@ class Selector
 		@element.html this.parse data
 		
 	parse: (data)->
-		console.log data.length;
 		content = ''
 		i = 0
 		for node in data
