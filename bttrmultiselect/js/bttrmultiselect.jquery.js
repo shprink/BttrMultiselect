@@ -2,6 +2,22 @@
   var $, BttrMultiselect, SelectParser, Selector, root,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
+  Array.prototype.searchSubstring = function(term) {
+    var i, j, r, _i, _len, _results;
+
+    r = new RegExp(term, 'i');
+    _results = [];
+    for (j = _i = 0, _len = this.length; _i < _len; j = ++_i) {
+      i = this[j];
+      if (r.test(i)) {
+        _results.push(j);
+      } else {
+        continue;
+      }
+    }
+    return _results;
+  };
+
   Selector = (function() {
     function Selector(element, data, multiple) {
       this.element = element;
@@ -11,6 +27,7 @@
 
     Selector.prototype.parse = function(data) {
       var content, i, node, _i, _len;
+
       content = '';
       i = 0;
       for (_i = 0, _len = data.length; _i < _len; _i++) {
@@ -27,6 +44,7 @@
 
     Selector.prototype.addGroup = function(group) {
       var classes;
+
       classes = [];
       classes.push("bttr-group");
       if (group.disabled) {
@@ -37,6 +55,7 @@
 
     Selector.prototype.addOption = function(option) {
       var classes;
+
       option.dom_id = this.container_id + "_o_" + option.array_index;
       classes = [];
       classes.push("bttr-option");
@@ -79,6 +98,7 @@
 
     SelectParser.prototype.add_group = function(group) {
       var group_position, option, _i, _len, _ref, _results;
+
       group_position = this.parsed.length;
       this.parsed.push({
         array_index: group_position,
@@ -131,6 +151,7 @@
 
   SelectParser.parse = function(select) {
     var child, parser, _i, _len, _ref;
+
     parser = new SelectParser();
     _ref = select.childNodes;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -145,6 +166,7 @@
   BttrMultiselect = (function() {
     function BttrMultiselect(select, options) {
       var multiple;
+
       this.select = select;
       this.options = options != null ? options : {};
       this._testGlobalClick = __bind(this._testGlobalClick, this);
@@ -176,6 +198,7 @@
 
     BttrMultiselect.prototype._getDefaultOptions = function() {
       var options;
+
       return options = {
         search: true,
         group_selector: true
@@ -188,6 +211,7 @@
 
     BttrMultiselect.prototype._bindEvents = function() {
       var _this = this;
+
       this.$button.on('click', function(event) {
         if (_this.opened) {
           return _this.close();
@@ -215,6 +239,7 @@
 
     BttrMultiselect.prototype._setContentPosition = function() {
       var pos;
+
       pos = this.$button.offset();
       return this.$bttrSelect.css({
         'top': pos.top,
@@ -227,7 +252,6 @@
     };
 
     BttrMultiselect.prototype._testGlobalClick = function(event) {
-      console.log(event.target);
       if (!this.$bttrSelect.find(event.target).length) {
         return this.close();
       }
@@ -252,6 +276,7 @@
 
     BttrMultiselect.prototype.refresh = function() {
       var selectParser;
+
       selectParser = root.SelectParser.parse(this.select);
       this.data = selectParser.parsed;
       console.log(this.data);
@@ -292,6 +317,7 @@
     bttrmultiselect: function(options) {
       return this.each(function() {
         var $this;
+
         $this = $(this);
         if (!$this.hasClass("bttrmultiselect-done")) {
           return $this.data('bttrmultiselect', new BttrMultiselect(this, options));
