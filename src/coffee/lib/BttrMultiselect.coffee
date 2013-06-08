@@ -27,13 +27,23 @@ class BttrMultiselect
 				@_bindEvents()
 
 				@$select.hide()
-				this.refresh()
+				
+				# Set position 
+				@_setButtonWidth();
+				@_setContentWidth();
+				@_setContentPosition();
 
 				# Make sure we instanciate once per element
 				@$select.addClass "bttrmultiselect-done"
 		
 				# close the content
 				@opened = false
+				
+				# Parse Select
+				if (@options.parse is 'onInstantiating')
+						@_parse()
+						
+				return this
 		
 		###
 	Private Functions
@@ -42,7 +52,7 @@ class BttrMultiselect
 		_getDefaultOptions: () ->
 				options = 
 						search : true
-						parsing_on_instanciation : true,
+						parse : 'onOpening', # || onInstantiating
 						nodeMax : 50
 			
 		_getTemplate: () ->
@@ -102,7 +112,9 @@ class BttrMultiselect
 				# Then we iterate through our node data
 				for node in @data.parsed
 						if node.group
-								@_injectGroup node
+								# No need to display empty groups
+								if node.children.length > 0
+										@_injectGroup node
 						else if !node.empty
 								@_injectOption node
 
@@ -113,15 +125,50 @@ class BttrMultiselect
 
 				$group = $("""
 				<li data-index="#{ group.index }" class="#{ classes.join(' ') }">
-					<div>#{ group.text }<span>#{ group.children.length }</span></div>
-					<ul class="bttr-options"></ul>
+					<div class="bttr-group-label">
+								<i class="icon-folder-close-alt"></i> #{ group.text }
+								<span>#{ group.children.length }</span>
+								<a href="javascript:void(0)"><i class="icon-chevron-down"></i></a>
+								<input type="checkbox">
+					</div>
+					<ul class="bttr-options" style="display:none"></ul>
 				</li>
 				""")
 
+				self = this
+				$group.find('input').click (event)->
+						event.stopPropagation()
+						self.$bttrSelect.trigger('onBeforeGroupSelect', [event, $(this)])
+						# TODO
+						# Remove node and Add it to the wish list
+
+				$group.find('.bttr-group-label').click (event)->
+						icon = $(this).find('a i')
+						# Then doing the same for each children
+						if !$(this).hasClass 'optionsLoaded'
+								# Adding a loading class
+								icon.removeClass 'icon-chevron-down'
+								icon.addClass 'icon-spinner icon-spin'
+								self._injectOption option, $group for option in group.children
+								# Removing the loading class
+								icon.removeClass 'icon-spinner icon-spin'
+								icon.addClass 'icon-chevron-down'
+								$(this).addClass 'optionsLoaded'
+
+						$group.find('ul.bttr-options').toggle 'slow', ()=>
+								if icon.hasClass 'icon-chevron-down'
+										icon.removeClass 'icon-chevron-down'
+										icon.addClass 'icon-chevron-up'
+								else
+										icon.removeClass 'icon-chevron-up'
+										icon.addClass 'icon-chevron-down'
+								# Scroll to the group
+								self.$list.animate({
+										scrollTop: $(this).offset().top + (self.$list.scrollTop()- self.$list.offset().top)
+								}, 200);
+
 				# inject the group to the DOM
 				@$list.append $group
-				# Then doing the same for each children
-				@_injectOption option, $group for option in group.children
 				
 		_injectOption: (option, $group) ->
 				classes = []
@@ -137,14 +184,25 @@ class BttrMultiselect
 
 				if $group then $group.find('ul.bttr-options').append $option else @$list.append $option
 
+		_parse: ()->
+				@data = new BttrMultiselectParser @select
+				console.log @data
+				@_injectNodes();
+				@parsed = true
 		###
 	public Functions
 	###
+
+		bttrmultiselect: () ->
+				return this
 
 		open: () ->
 				@$bttrSelect.addClass 'on'
 				$(document).click @_testGlobalClick
 				@opened = true
+				# Parse Select
+				if (!@parsed && @options.parse is 'onOpening')
+						@_parse()
 
 		close: () ->
 				@$bttrSelect.removeClass 'on'
@@ -152,17 +210,7 @@ class BttrMultiselect
 				@opened = false
 
 		refresh: () ->
-				# Initiate data		
-				@data = new BttrMultiselectParser @select
-				
-				console.log @data
-
-				# Set position 
-				@_setButtonWidth();
-				@_setContentWidth();
-				@_setContentPosition();
-				@_injectNodes();
-		
+				@_parse()
 				console.log 'refreshing'
 
 		checkAll: () ->

@@ -1,3 +1,4 @@
+(function() {
   var BttrMultiselectParser;
 
   BttrMultiselectParser = (function() {
@@ -69,3 +70,5 @@
     return BttrMultiselectParser;
 
   })();
+
+}).call(this);

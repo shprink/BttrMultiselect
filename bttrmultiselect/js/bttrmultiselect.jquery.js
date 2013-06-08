@@ -94,9 +94,15 @@
       this.width = this.$select.outerWidth();
       this._bindEvents();
       this.$select.hide();
-      this.refresh();
+      this._setButtonWidth();
+      this._setContentWidth();
+      this._setContentPosition();
       this.$select.addClass("bttrmultiselect-done");
       this.opened = false;
+      if (this.options.parse === 'onInstantiating') {
+        this._parse();
+      }
+      return this;
     }
 
     /*
@@ -108,7 +114,7 @@
       var options;
       return options = {
         search: true,
-        parsing_on_instanciation: true,
+        parse: 'onOpening',
         nodeMax: 50
       };
     };
@@ -171,7 +177,11 @@
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         node = _ref[_i];
         if (node.group) {
-          _results.push(this._injectGroup(node));
+          if (node.children.length > 0) {
+            _results.push(this._injectGroup(node));
+          } else {
+            _results.push(void 0);
+          }
         } else if (!node.empty) {
           _results.push(this._injectOption(node));
         } else {
@@ -182,21 +192,48 @@
     };
 
     BttrMultiselect.prototype._injectGroup = function(group) {
-      var $group, classes, option, _i, _len, _ref, _results;
+      var $group, classes, self;
       classes = [];
       classes.push("bttr-group");
       if (group.disabled) {
         classes.push("bttr-group-disabled");
       }
-      $group = $("<li data-index=\"" + group.index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div>" + group.text + "<span>" + group.children.length + "</span></div>\n	<ul class=\"bttr-options\"></ul>\n</li>");
-      this.$list.append($group);
-      _ref = group.children;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        option = _ref[_i];
-        _results.push(this._injectOption(option, $group));
-      }
-      return _results;
+      $group = $("<li data-index=\"" + group.index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div class=\"bttr-group-label\">\n				<i class=\"icon-folder-close-alt\"></i> " + group.text + "\n				<span>" + group.children.length + "</span>\n				<a href=\"javascript:void(0)\"><i class=\"icon-chevron-down\"></i></a>\n				<input type=\"checkbox\">\n	</div>\n	<ul class=\"bttr-options\" style=\"display:none\"></ul>\n</li>");
+      self = this;
+      $group.find('input').click(function(event) {
+        event.stopPropagation();
+        return self.$bttrSelect.trigger('onBeforeGroupSelect', [event, $(this)]);
+      });
+      $group.find('.bttr-group-label').click(function(event) {
+        var icon, option, _i, _len, _ref,
+          _this = this;
+        icon = $(this).find('a i');
+        if (!$(this).hasClass('optionsLoaded')) {
+          icon.removeClass('icon-chevron-down');
+          icon.addClass('icon-spinner icon-spin');
+          _ref = group.children;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            option = _ref[_i];
+            self._injectOption(option, $group);
+          }
+          icon.removeClass('icon-spinner icon-spin');
+          icon.addClass('icon-chevron-down');
+          $(this).addClass('optionsLoaded');
+        }
+        return $group.find('ul.bttr-options').toggle('slow', function() {
+          if (icon.hasClass('icon-chevron-down')) {
+            icon.removeClass('icon-chevron-down');
+            icon.addClass('icon-chevron-up');
+          } else {
+            icon.removeClass('icon-chevron-up');
+            icon.addClass('icon-chevron-down');
+          }
+          return self.$list.animate({
+            scrollTop: $(_this).offset().top + (self.$list.scrollTop() - self.$list.offset().top)
+          }, 200);
+        });
+      });
+      return this.$list.append($group);
     };
 
     BttrMultiselect.prototype._injectOption = function(option, $group) {
@@ -217,15 +254,29 @@
       }
     };
 
+    BttrMultiselect.prototype._parse = function() {
+      this.data = new BttrMultiselectParser(this.select);
+      console.log(this.data);
+      this._injectNodes();
+      return this.parsed = true;
+    };
+
     /*
     	public Functions
     */
 
 
+    BttrMultiselect.prototype.bttrmultiselect = function() {
+      return this;
+    };
+
     BttrMultiselect.prototype.open = function() {
       this.$bttrSelect.addClass('on');
       $(document).click(this._testGlobalClick);
-      return this.opened = true;
+      this.opened = true;
+      if (!this.parsed && this.options.parse === 'onOpening') {
+        return this._parse();
+      }
     };
 
     BttrMultiselect.prototype.close = function() {
@@ -235,12 +286,7 @@
     };
 
     BttrMultiselect.prototype.refresh = function() {
-      this.data = new BttrMultiselectParser(this.select);
-      console.log(this.data);
-      this._setButtonWidth();
-      this._setContentWidth();
-      this._setContentPosition();
-      this._injectNodes();
+      this._parse();
       return console.log('refreshing');
     };
 
