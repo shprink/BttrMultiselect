@@ -1,0 +1,92 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Chosen Parser vs BttrMultiselect Parser</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	</head>
+	<body>
+		<p>Use Chrome and the console to see the bench results</p>
+		<select id="nodes-10"></select>
+		<select id="nodes-100"></select>
+		<select id="nodes-1000"></select>
+		<select id="nodes-10000"></select>
+		<select id="nodes-100000"></select>
+		<select id="nodes-1000000"></select>
+		<script src="assets/BttrMultiselectParser.js" type="text/javascript"></script>
+		<script src="assets/ChosenParser.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			// http://stackoverflow.com/questions/1248302/javascript-object-size
+			function roughSizeOfObject(object) {
+
+				var objectList = [];
+				var stack = [object];
+				var bytes = 0;
+
+				while (stack.length) {
+					var value = stack.pop();
+
+					if (typeof value === 'boolean') {
+						bytes += 4;
+					}
+					else if (typeof value === 'string') {
+						bytes += value.length * 2;
+					}
+					else if (typeof value === 'number') {
+						bytes += 8;
+					}
+					else if
+							(
+									typeof value === 'object'
+									&& objectList.indexOf(value) === -1
+									)
+					{
+						objectList.push(value);
+
+						for (i in value) {
+							stack.push(value[ i ]);
+						}
+					}
+				}
+				return Math.floor(bytes / 1024);
+			}
+			var ids = ['nodes-10',
+				'nodes-100',
+				'nodes-1000',
+				'nodes-10000',
+				'nodes-100000',
+				// Bad for your browser :P
+				//'nodes-1000000'
+			];
+			// populate selects
+			for (var id in ids) {
+				var options = parseInt(ids[id].split('-')[1]);
+				for (var i = 0; i < options; i++)
+				{
+					var option = document.createElement("OPTION");
+					option.innerText = i;
+					document.getElementById(ids[id]).appendChild(option);
+				}
+			}
+
+			// Parse them
+			for (var id in ids) {
+				console.log(ids[id]);
+				console.time('BttrMultiselect Parser');
+				var object = new BttrMultiselectParser(document.getElementById(ids[id]));
+				console.timeEnd('BttrMultiselect Parser');
+
+				//console.log(roughSizeOfObject(object.parsed), 'Kb');
+
+				console.time('Chosen Parser');
+				var object = SelectParser.select_to_array(document.getElementById(ids[id]));
+				console.timeEnd('Chosen Parser');
+
+				//console.log(roughSizeOfObject(object), 'Kb');
+			}
+		</script>
+	</body>
+</html>

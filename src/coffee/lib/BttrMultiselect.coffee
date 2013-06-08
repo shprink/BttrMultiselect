@@ -42,7 +42,8 @@ class BttrMultiselect
 		_getDefaultOptions: () ->
 				options = 
 						search : true
-						parsing_on_instanciation : true
+						parsing_on_instanciation : true,
+						nodeMax : 50
 			
 		_getTemplate: () ->
 				"""<div class='bttrmultiselect'>
@@ -153,6 +154,8 @@ class BttrMultiselect
 		refresh: () ->
 				# Initiate data		
 				@data = new BttrMultiselectParser @select
+				
+				console.log @data
 
 				# Set position 
 				@_setButtonWidth();

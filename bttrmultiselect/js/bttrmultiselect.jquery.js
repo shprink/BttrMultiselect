@@ -108,7 +108,8 @@
       var options;
       return options = {
         search: true,
-        parsing_on_instanciation: true
+        parsing_on_instanciation: true,
+        nodeMax: 50
       };
     };
 
@@ -235,6 +236,7 @@
 
     BttrMultiselect.prototype.refresh = function() {
       this.data = new BttrMultiselectParser(this.select);
+      console.log(this.data);
       this._setButtonWidth();
       this._setContentWidth();
       this._setContentPosition();
