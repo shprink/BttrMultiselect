@@ -128,40 +128,44 @@ class BttrMultiselect
 					<div class="bttr-group-label">
 								<i class="icon-folder-close-alt"></i> #{ group.text }
 								<span>#{ group.children.length }</span>
-								<a href="javascript:void(0)"><i class="icon-chevron-down"></i></a>
-								<input type="checkbox">
 					</div>
 					<ul class="bttr-options" style="display:none"></ul>
 				</li>
 				""")
+				
+				# Adding the checkbox input if the group is not disabled
+				$group.find('.bttr-group-label').append $('<input type="checkbox">') if !group.disabled
 
 				self = this
 				$group.find('input').click (event)->
 						event.stopPropagation()
-						self.$bttrSelect.trigger('onBeforeGroupSelect', [event, $(this)])
+						self.$bttrSelect.trigger('onBeforeGroupSelect', [event, $(this), self])						
 						# TODO
 						# Remove node and Add it to the wish list
+						
+						# trigger the select change event
+						self.$select.trigger('change', [event]);
 
 				$group.find('.bttr-group-label').click (event)->
-						icon = $(this).find('a i')
+						icon = $(this).find('i')
 						# Then doing the same for each children
 						if !$(this).hasClass 'optionsLoaded'
 								# Adding a loading class
-								icon.removeClass 'icon-chevron-down'
+								icon.removeClass 'icon-folder-close-alt'
 								icon.addClass 'icon-spinner icon-spin'
 								self._injectOption option, $group for option in group.children
 								# Removing the loading class
 								icon.removeClass 'icon-spinner icon-spin'
-								icon.addClass 'icon-chevron-down'
+								icon.addClass 'icon-folder-close-alt'
 								$(this).addClass 'optionsLoaded'
 
 						$group.find('ul.bttr-options').toggle 'slow', ()=>
-								if icon.hasClass 'icon-chevron-down'
-										icon.removeClass 'icon-chevron-down'
-										icon.addClass 'icon-chevron-up'
+								if icon.hasClass 'icon-folder-close-alt'
+										icon.removeClass 'icon-folder-close-alt'
+										icon.addClass 'icon-folder-open-alt'
 								else
-										icon.removeClass 'icon-chevron-up'
-										icon.addClass 'icon-chevron-down'
+										icon.removeClass 'icon-folder-open-alt'
+										icon.addClass 'icon-folder-close-alt'
 								# Scroll to the group
 								self.$list.animate({
 										scrollTop: $(this).offset().top + (self.$list.scrollTop()- self.$list.offset().top)

@@ -53,6 +53,14 @@
   cursor: pointer;
   margin: 0px;
 }
+.bttrmultiselect .bttr-group:hover,
+.bttrmultiselect .bttr-option:hover {
+  background-color: #CCC;
+}
+.bttrmultiselect ul.bttr-options {
+  padding-left: 10px;
+  list-style-type: none;
+}
 .bttrmultiselect .bttr-group .bttr-group-label a {
   float: right;
   text-decoration: none;

@@ -198,18 +198,22 @@
       if (group.disabled) {
         classes.push("bttr-group-disabled");
       }
-      $group = $("<li data-index=\"" + group.index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div class=\"bttr-group-label\">\n				<i class=\"icon-folder-close-alt\"></i> " + group.text + "\n				<span>" + group.children.length + "</span>\n				<a href=\"javascript:void(0)\"><i class=\"icon-chevron-down\"></i></a>\n				<input type=\"checkbox\">\n	</div>\n	<ul class=\"bttr-options\" style=\"display:none\"></ul>\n</li>");
+      $group = $("<li data-index=\"" + group.index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div class=\"bttr-group-label\">\n				<i class=\"icon-folder-close-alt\"></i> " + group.text + "\n				<span>" + group.children.length + "</span>\n	</div>\n	<ul class=\"bttr-options\" style=\"display:none\"></ul>\n</li>");
+      if (!group.disabled) {
+        $group.find('.bttr-group-label').append($('<input type="checkbox">'));
+      }
       self = this;
       $group.find('input').click(function(event) {
         event.stopPropagation();
-        return self.$bttrSelect.trigger('onBeforeGroupSelect', [event, $(this)]);
+        self.$bttrSelect.trigger('onBeforeGroupSelect', [event, $(this), self]);
+        return self.$select.trigger('change', [event]);
       });
       $group.find('.bttr-group-label').click(function(event) {
         var icon, option, _i, _len, _ref,
           _this = this;
-        icon = $(this).find('a i');
+        icon = $(this).find('i');
         if (!$(this).hasClass('optionsLoaded')) {
-          icon.removeClass('icon-chevron-down');
+          icon.removeClass('icon-folder-close-alt');
           icon.addClass('icon-spinner icon-spin');
           _ref = group.children;
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -217,16 +221,16 @@
             self._injectOption(option, $group);
           }
           icon.removeClass('icon-spinner icon-spin');
-          icon.addClass('icon-chevron-down');
+          icon.addClass('icon-folder-close-alt');
           $(this).addClass('optionsLoaded');
         }
         return $group.find('ul.bttr-options').toggle('slow', function() {
-          if (icon.hasClass('icon-chevron-down')) {
-            icon.removeClass('icon-chevron-down');
-            icon.addClass('icon-chevron-up');
+          if (icon.hasClass('icon-folder-close-alt')) {
+            icon.removeClass('icon-folder-close-alt');
+            icon.addClass('icon-folder-open-alt');
           } else {
-            icon.removeClass('icon-chevron-up');
-            icon.addClass('icon-chevron-down');
+            icon.removeClass('icon-folder-open-alt');
+            icon.addClass('icon-folder-close-alt');
           }
           return self.$list.animate({
             scrollTop: $(_this).offset().top + (self.$list.scrollTop() - self.$list.offset().top)
