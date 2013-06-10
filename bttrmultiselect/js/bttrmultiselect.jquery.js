@@ -2,6 +2,45 @@
   var $, BttrMultiselect, BttrMultiselectParser, root,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
+  Array.prototype.searchSubstring = function(term) {
+    var i, j, r, _i, _len, _results;
+    r = new RegExp(term, 'i');
+    _results = [];
+    for (j = _i = 0, _len = this.length; _i < _len; j = ++_i) {
+      i = this[j];
+      if (r.test(i)) {
+        _results.push(j);
+      } else {
+        continue;
+      }
+    }
+    return _results;
+  };
+
+  Array.prototype.binarySearch = function(find, comparator) {
+    var comparison, high, i, low;
+    low = 0;
+    high = this.length - 1;
+    console.log(find, 'find');
+    while (low <= high) {
+      console.log(high, 'high');
+      console.log(low, 'low');
+      i = Math.floor((low + high) / 2);
+      comparison = comparator(this[i], find);
+      console.log(comparison, 'comparison');
+      if (comparison < 0) {
+        low = i + 1;
+        continue;
+      }
+      if (comparison > 0) {
+        high = i - 1;
+        continue;
+      }
+      return this[i];
+    }
+    return null;
+  };
+
   BttrMultiselectParser = (function() {
     function BttrMultiselectParser(select) {
       var child, _i, _len, _ref;
@@ -86,13 +125,13 @@
       } else {
         this.isMultiple = false;
       }
+      console.log(this.isMultiple);
       this.$bttrSelect = $(this._getTemplate());
       this.$button = this.$bttrSelect.find('a.bttrmultiselect-button');
       this.$search = this.$bttrSelect.find('div.bttrmultiselect-search input');
       this.$list = this.$bttrSelect.find('ul.bttrmultiselect-list');
       this.$bttrSelect.insertAfter(this.$select);
       this.width = this.$select.outerWidth();
-      this._bindEvents();
       this.$select.hide();
       this._setButtonWidth();
       this._setContentWidth();
@@ -102,6 +141,8 @@
       if (this.options.parse === 'onInstantiating') {
         this._parse();
       }
+      this._bindEvents();
+      this._setupListeners();
       return this;
     }
 
@@ -139,6 +180,13 @@
           _this.$search.blur();
           return _this._resetSearch();
         }
+      });
+    };
+
+    BttrMultiselect.prototype._setupListeners = function() {
+      var _this = this;
+      return this.$select.bind('refreshed', function(evt) {
+        _this.refresh(evt);
       });
     };
 
@@ -199,13 +247,15 @@
         classes.push("bttr-group-disabled");
       }
       $group = $("<li data-index=\"" + group.index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div class=\"bttr-group-label\">\n				<i class=\"icon-folder-close-alt\"></i> " + group.text + "\n				<span>" + group.children.length + "</span>\n	</div>\n	<ul class=\"bttr-options\" style=\"display:none\"></ul>\n</li>");
-      if (!group.disabled) {
+      if (!group.disabled && this.isMultiple) {
         $group.find('.bttr-group-label').append($('<input type="checkbox">'));
       }
       self = this;
       $group.find('input').click(function(event) {
         event.stopPropagation();
-        self.$bttrSelect.trigger('onBeforeGroupSelect', [event, $(this), self]);
+        self.$bttrSelect.trigger('onBeforeGroupSelection', [$group, $(this), self]);
+        console.log(self._findNode($group.data('index')));
+        self.$bttrSelect.trigger('onGroupSelection', [$group, $(this), self]);
         return self.$select.trigger('change', [event]);
       });
       $group.find('.bttr-group-label').click(function(event) {
@@ -263,6 +313,19 @@
       console.log(this.data);
       this._injectNodes();
       return this.parsed = true;
+    };
+
+    BttrMultiselect.prototype._findNode = function(index) {
+      index = parseInt(index);
+      return this.data.parsed.binarySearch(index, function(object, find) {
+        if (object.index > find) {
+          return 1;
+        } else if (object.index < find) {
+          return -1;
+        } else {
+          return 0;
+        }
+      });
     };
 
     /*

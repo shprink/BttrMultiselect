@@ -13,6 +13,7 @@ pathToCssBin = "#{ pathToBin }css/"
 
 js_files = {
 		"bttrmultiselect/js/bttrmultiselect.jquery.js": [
+				"#{ pathToCoffeeSource }lib/Array.coffee"
 				"#{ pathToCoffeeSource }lib/BttrMultiselectParser.coffee"
 				"#{ pathToCoffeeSource }lib/BttrMultiselect.coffee"
 				"#{ pathToCoffeeSource }bttrmultiselect.jquery.coffee"

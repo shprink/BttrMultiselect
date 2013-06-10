@@ -11,6 +11,8 @@ class BttrMultiselect
 						@isMultiple = true;
 				else
 						@isMultiple = false;
+						
+				console.log @isMultiple
 		
 				# We create our elements
 				@$bttrSelect = $(@_getTemplate())
@@ -23,8 +25,6 @@ class BttrMultiselect
 		
 				# Set the size
 				@width = @$select.outerWidth()
-
-				@_bindEvents()
 
 				@$select.hide()
 				
@@ -42,6 +42,9 @@ class BttrMultiselect
 				# Parse Select
 				if (@options.parse is 'onInstantiating')
 						@_parse()
+
+				@_bindEvents()
+				@_setupListeners()
 						
 				return this
 		
@@ -86,6 +89,12 @@ class BttrMultiselect
 						else
 								@$search.blur()
 								@_resetSearch()
+								
+		_setupListeners: () ->
+				# BttrSelect events
+						
+				# Select events
+				@$select.bind 'refreshed', (evt) => @refresh(evt); return
 
 		_setButtonWidth: () ->
 				@$button.css('width', @width);
@@ -134,14 +143,19 @@ class BttrMultiselect
 				""")
 				
 				# Adding the checkbox input if the group is not disabled
-				$group.find('.bttr-group-label').append $('<input type="checkbox">') if !group.disabled
+				if !group.disabled && @isMultiple
+						$group.find('.bttr-group-label').append $('<input type="checkbox">')
 
 				self = this
 				$group.find('input').click (event)->
 						event.stopPropagation()
-						self.$bttrSelect.trigger('onBeforeGroupSelect', [event, $(this), self])						
-						# TODO
+						self.$bttrSelect.trigger('onBeforeGroupSelection', [$group, $(this), self])						
+
+						console.log self._findNode($group.data('index'))
+						#$checkbox.is(':checked')
+
 						# Remove node and Add it to the wish list
+						self.$bttrSelect.trigger('onGroupSelection', [$group, $(this), self])						
 						
 						# trigger the select change event
 						self.$select.trigger('change', [event]);
@@ -193,6 +207,18 @@ class BttrMultiselect
 				console.log @data
 				@_injectNodes();
 				@parsed = true
+				
+		# Binary search to get a node
+		_findNode: (index) ->
+				index = parseInt index
+				@data.parsed.binarySearch(index, (object, find)->
+						if object.index > find
+								return 1
+						else if object.index < find
+								return -1
+						else
+								return 0
+						)
 		###
 	public Functions
 	###
