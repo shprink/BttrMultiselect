@@ -192,15 +192,11 @@
       var _this = this;
       this.$bttrSelect.bind('onGroupSelection', function(evt, $group, $checkbox) {
         if ($checkbox.is(':checked')) {
-          return setInterval(function() {
-            return $group.remove();
-          }, 200);
+          return $group.remove();
         }
       });
       this.$bttrSelect.bind('onOptionSelection', function(evt, $option) {
-        return setInterval(function() {
-          return $option.remove();
-        }, 200);
+        return $option.remove();
       });
       this.$bttrSelect.bind('onSelectedUpdate', function(evt, selected, node) {
         console.log(selected.length, 'selected.length');
@@ -267,7 +263,7 @@
       if (group.disabled) {
         classes.push("bttr-group-disabled");
       }
-      $group = $("<li data-index=\"" + group.index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div class=\"bttr-group-label\">\n				<i class=\"icon-folder-close-alt\"></i> " + group.text + "\n				<span>" + group.children.length + "</span>\n	</div>\n	<ul class=\"bttr-options\" style=\"display:none\"></ul>\n</li>");
+      $group = $("<li data-groupindex=\"" + group.index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div class=\"bttr-group-label\">\n				<i class=\"icon-folder-close-alt\"></i> " + group.text + "\n				<span>" + group.children.length + "</span>\n	</div>\n	<ul class=\"bttr-options\" style=\"display:none\"></ul>\n</li>");
       if (!group.disabled && this.isMultiple) {
         $group.find('.bttr-group-label').append($('<input type="checkbox">'));
       }
@@ -321,7 +317,7 @@
       if (option.selected) {
         classes.push("bttr-option-selected");
       }
-      $option = $("<li data-index=\"" + option.index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div>" + option.text + "</div>\n</li>");
+      $option = $("<li data-optionindex=\"" + option.index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div>" + option.text + "</div>\n</li>");
       if (option.groupindex) {
         $option.attr('data-groupindex', option.groupindex);
       }
@@ -345,9 +341,11 @@
       return this.parsed = true;
     };
 
-    BttrMultiselect.prototype._findNode = function(index) {
-      index = parseInt(index);
-      return this.data.parsed.binarySearch(index, function(object, find) {
+    BttrMultiselect.prototype._findNode = function(array, index) {
+      if (!array) {
+        return {};
+      }
+      return array.binarySearch(index, function(object, find) {
         if (object.index > find) {
           return 1;
         } else if (object.index < find) {
@@ -358,7 +356,30 @@
       });
     };
 
-    BttrMultiselect.prototype._unRegisterNode = function(node) {};
+    BttrMultiselect.prototype._findGroup = function(groupIndex) {
+      return this._findNode(this.data.parsed, groupIndex);
+    };
+
+    BttrMultiselect.prototype._findOption = function(optionIndex, groupIndex) {
+      var group;
+      if (groupIndex) {
+        group = this._findNode(this.data.parsed, groupIndex);
+        return this._findNode(group.chidren, optionIndex);
+      }
+      return this._findNode(this.data.parsed, optionIndex);
+    };
+
+    BttrMultiselect.prototype._unRegisterNode = function(node) {
+      if (node.groupindex) {
+        if (this.$list.has("[data-groupindex=" + node.groupindex + "]")) {
+          return this._injectOption(node, this.$list.find("[data-groupindex=" + node.groupindex + "]"));
+        } else {
+          return this._injectGroup(this._findGroup(node.groupindex));
+        }
+      } else {
+        return this._injectOption(node);
+      }
+    };
 
     BttrMultiselect.prototype._registerNode = function(node) {
       var groupNode, option, ref, _i, _len, _ref;

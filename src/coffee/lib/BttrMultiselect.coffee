@@ -99,14 +99,10 @@ class BttrMultiselect
 				# BttrSelect events
 				@$bttrSelect.bind 'onGroupSelection', (evt, $group, $checkbox) =>
 						if $checkbox.is(':checked')
-										setInterval(()->
-												$group.remove();
-										, 200)
+									$group.remove();
 										
 				@$bttrSelect.bind 'onOptionSelection', (evt, $option) =>
-						setInterval(()->
-								$option.remove();
-						, 200)
+						$option.remove();
 										
 				@$bttrSelect.bind 'onSelectedUpdate', (evt, selected, node) =>
 						console.log selected.length, 'selected.length'
@@ -152,7 +148,7 @@ class BttrMultiselect
 				classes.push "bttr-group-disabled" if group.disabled
 
 				$group = $("""
-				<li data-index="#{ group.index }" class="#{ classes.join(' ') }">
+				<li data-groupindex="#{ group.index }" class="#{ classes.join(' ') }">
 					<div class="bttr-group-label">
 								<i class="icon-folder-close-alt"></i> #{ group.text }
 								<span>#{ group.children.length }</span>
@@ -214,7 +210,7 @@ class BttrMultiselect
 				classes.push "bttr-option-selected" if option.selected
 
 				$option = $("""
-				<li data-index="#{ option.index }" class="#{ classes.join(' ') }">
+				<li data-optionindex="#{ option.index }" class="#{ classes.join(' ') }">
 					<div>#{ option.text }</div>
 				</li>
 				""")
@@ -244,9 +240,10 @@ class BttrMultiselect
 				@parsed = true
 				
 		# Binary search to get a node
-		_findNode: (index) ->
-				index = parseInt index
-				@data.parsed.binarySearch(index, (object, find)->
+		_findNode: (array, index) ->
+				if !array
+						return {}
+				array.binarySearch(index, (object, find)->
 						if object.index > find
 								return 1
 						else if object.index < find
@@ -255,8 +252,24 @@ class BttrMultiselect
 								return 0
 						)
 
-		_unRegisterNode: (node) ->
+		_findGroup: (groupIndex)->
+				@_findNode(@data.parsed, groupIndex)
 				
+		_findOption: (optionIndex, groupIndex)->
+				if groupIndex
+						group = @_findNode(@data.parsed, groupIndex)
+						return @_findNode(group.chidren, optionIndex)
+				@_findNode(@data.parsed, optionIndex)
+
+		_unRegisterNode: (node) ->
+				# Option from a group
+				if node.groupindex
+						if @$list.has "[data-groupindex=#{ node.groupindex }]"
+								@_injectOption node, @$list.find "[data-groupindex=#{ node.groupindex }]"
+						else
+								@_injectGroup(@_findGroup(node.groupindex))
+				else
+						@_injectOption node
 
 		_registerNode: (node) ->
 				if node.group
