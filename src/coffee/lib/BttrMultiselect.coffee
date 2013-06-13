@@ -39,6 +39,9 @@ class BttrMultiselect
 				# close the content
 				@opened = false
 				
+				# initiate node container
+				@selected = []
+				
 				# Parse Select
 				if (@options.parse is 'onInstantiating')
 						@_parse()
@@ -54,7 +57,9 @@ class BttrMultiselect
 		
 		_getDefaultOptions: () ->
 				options = 
-						search : true
+						search :
+								enabled: true
+								opened: false
 						parse : 'onOpening', # || onInstantiating
 						nodeMax : 50
 			
@@ -92,6 +97,20 @@ class BttrMultiselect
 								
 		_setupListeners: () ->
 				# BttrSelect events
+				@$bttrSelect.bind 'onGroupSelection', (evt, $group, $checkbox) =>
+						if $checkbox.is(':checked')
+										setInterval(()->
+												$group.remove();
+										, 200)
+										
+				@$bttrSelect.bind 'onOptionSelection', (evt, $option) =>
+						setInterval(()->
+								$option.remove();
+						, 200)
+										
+				@$bttrSelect.bind 'onSelectedUpdate', (evt, selected, node) =>
+						console.log selected.length, 'selected.length'
+						@$button.find('.bttrmultiselect-selected').text(selected.length)
 						
 				# Select events
 				@$select.bind 'refreshed', (evt) => @refresh(evt); return
@@ -151,10 +170,10 @@ class BttrMultiselect
 						event.stopPropagation()
 						self.$bttrSelect.trigger('onBeforeGroupSelection', [$group, $(this), self])						
 
-						console.log self._findNode($group.data('index'))
-						#$checkbox.is(':checked')
+						# Add Node to the wish list
+						self._registerNode(group)
 
-						# Remove node and Add it to the wish list
+						# Remove node
 						self.$bttrSelect.trigger('onGroupSelection', [$group, $(this), self])						
 						
 						# trigger the select change event
@@ -199,12 +218,28 @@ class BttrMultiselect
 					<div>#{ option.text }</div>
 				</li>
 				""")
+				
+				if option.groupindex
+						$option.attr('data-groupindex', option.groupindex)
+				
+				self = this
+				$option.click (event)->
+						self.$bttrSelect.trigger('onBeforeOptionSelection', [$option, self])						
+
+						# Add Node to the wish list
+						self._registerNode(option)
+
+						# Remove node
+						self.$bttrSelect.trigger('onOptionSelection', [$option, self])						
+						
+						# trigger the select change event
+						self.$select.trigger('change', [event]);
 
 				if $group then $group.find('ul.bttr-options').append $option else @$list.append $option
 
 		_parse: ()->
 				@data = new BttrMultiselectParser @select
-				console.log @data
+				#console.log @data.parsed, 'select parsed'
 				@_injectNodes();
 				@parsed = true
 				
@@ -219,6 +254,34 @@ class BttrMultiselect
 						else
 								return 0
 						)
+
+		_unRegisterNode: (node) ->
+				
+
+		_registerNode: (node) ->
+				if node.group
+						# Get the group element
+						groupNode = @select.childNodes[node.index]
+						for option in node.children
+								# Select the option within the group
+								console.log groupNode.childNodes[option.index].selected
+								if !groupNode.childNodes[option.index].selected
+										groupNode.childNodes[option.index].selected = true
+										@selected.push(option)
+				else
+						ref = @select
+						if node.groupindex
+								# Get the group element
+								ref = @select.childNodes[node.groupindex]
+
+						# Select the option
+						if !ref.childNodes[node.index].selected
+								ref.childNodes[node.index].selected = true
+								@selected.push(node)
+
+				this.$bttrSelect.trigger('onSelectedUpdate', [@selected, node])
+				console.log @selected
+
 		###
 	public Functions
 	###
@@ -240,6 +303,7 @@ class BttrMultiselect
 				@opened = false
 
 		refresh: () ->
+				@selected = []
 				@_parse()
 				console.log 'refreshing'
 

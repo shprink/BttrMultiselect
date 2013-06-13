@@ -43,54 +43,56 @@
 
   BttrMultiselectParser = (function() {
     function BttrMultiselectParser(select) {
-      var child, _i, _len, _ref;
-      this.index = 0;
+      var child, index, _i, _len, _ref;
+      this.totalNode = 0;
       this.hasGroup = false;
       this.parsed = [];
       _ref = select.childNodes;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        child = _ref[_i];
-        this.addNode(child);
+      for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
+        child = _ref[index];
+        this.addNode(child, index);
       }
       return this;
     }
 
-    BttrMultiselectParser.prototype.addNode = function(child) {
+    BttrMultiselectParser.prototype.addNode = function(child, index) {
       if (child.nodeName.toUpperCase() === "OPTGROUP") {
-        return this.addGroup(child);
+        return this.addGroup(child, index);
       } else {
-        return this.addOption(child);
+        return this.addOption(child, index);
       }
     };
 
-    BttrMultiselectParser.prototype.addGroup = function(group) {
+    BttrMultiselectParser.prototype.addGroup = function(group, index) {
       var array_index, g, option, _i, _len, _ref, _results;
       this.hasGroup = true;
       array_index = this.parsed.length;
       g = {
         group: true,
-        index: this.index,
+        index: index,
         text: group.label,
         disabled: group.disabled,
         children: []
       };
       this.parsed.push(g);
-      this.index += 1;
       _ref = group.childNodes;
       _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        option = _ref[_i];
-        _results.push(this.addOption(option, array_index, g.index, g.disabled));
+      for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
+        option = _ref[index];
+        _results.push(this.addOption(option, index, array_index, g.index, g.disabled));
       }
       return _results;
     };
 
-    BttrMultiselectParser.prototype.addOption = function(option, array_index, group_index, group_disabled) {
+    BttrMultiselectParser.prototype.addOption = function(option, index, array_index, group_index, group_disabled) {
       var o;
       if (option.nodeName.toUpperCase() === "OPTION") {
         o = {
-          index: this.index
+          index: index
         };
+        if (group_index) {
+          o.groupindex = group_index;
+        }
         if (option.text !== "") {
           o.text = option.text;
           o.selected = option.selected;
@@ -99,11 +101,10 @@
           o.empty = true;
         }
         if (array_index) {
-          this.parsed[array_index].children.push(o);
+          return this.parsed[array_index].children.push(o);
         } else {
-          this.parsed.push(o);
+          return this.parsed.push(o);
         }
-        return this.index += 1;
       }
     };
 
@@ -138,6 +139,7 @@
       this._setContentPosition();
       this.$select.addClass("bttrmultiselect-done");
       this.opened = false;
+      this.selected = [];
       if (this.options.parse === 'onInstantiating') {
         this._parse();
       }
@@ -154,7 +156,10 @@
     BttrMultiselect.prototype._getDefaultOptions = function() {
       var options;
       return options = {
-        search: true,
+        search: {
+          enabled: true,
+          opened: false
+        },
         parse: 'onOpening',
         nodeMax: 50
       };
@@ -185,6 +190,22 @@
 
     BttrMultiselect.prototype._setupListeners = function() {
       var _this = this;
+      this.$bttrSelect.bind('onGroupSelection', function(evt, $group, $checkbox) {
+        if ($checkbox.is(':checked')) {
+          return setInterval(function() {
+            return $group.remove();
+          }, 200);
+        }
+      });
+      this.$bttrSelect.bind('onOptionSelection', function(evt, $option) {
+        return setInterval(function() {
+          return $option.remove();
+        }, 200);
+      });
+      this.$bttrSelect.bind('onSelectedUpdate', function(evt, selected, node) {
+        console.log(selected.length, 'selected.length');
+        return _this.$button.find('.bttrmultiselect-selected').text(selected.length);
+      });
       return this.$select.bind('refreshed', function(evt) {
         _this.refresh(evt);
       });
@@ -254,7 +275,7 @@
       $group.find('input').click(function(event) {
         event.stopPropagation();
         self.$bttrSelect.trigger('onBeforeGroupSelection', [$group, $(this), self]);
-        console.log(self._findNode($group.data('index')));
+        self._registerNode(group);
         self.$bttrSelect.trigger('onGroupSelection', [$group, $(this), self]);
         return self.$select.trigger('change', [event]);
       });
@@ -291,7 +312,7 @@
     };
 
     BttrMultiselect.prototype._injectOption = function(option, $group) {
-      var $option, classes;
+      var $option, classes, self;
       classes = [];
       classes.push("bttr-option");
       if (option.disabled) {
@@ -301,6 +322,16 @@
         classes.push("bttr-option-selected");
       }
       $option = $("<li data-index=\"" + option.index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div>" + option.text + "</div>\n</li>");
+      if (option.groupindex) {
+        $option.attr('data-groupindex', option.groupindex);
+      }
+      self = this;
+      $option.click(function(event) {
+        self.$bttrSelect.trigger('onBeforeOptionSelection', [$option, self]);
+        self._registerNode(option);
+        self.$bttrSelect.trigger('onOptionSelection', [$option, self]);
+        return self.$select.trigger('change', [event]);
+      });
       if ($group) {
         return $group.find('ul.bttr-options').append($option);
       } else {
@@ -310,7 +341,6 @@
 
     BttrMultiselect.prototype._parse = function() {
       this.data = new BttrMultiselectParser(this.select);
-      console.log(this.data);
       this._injectNodes();
       return this.parsed = true;
     };
@@ -326,6 +356,35 @@
           return 0;
         }
       });
+    };
+
+    BttrMultiselect.prototype._unRegisterNode = function(node) {};
+
+    BttrMultiselect.prototype._registerNode = function(node) {
+      var groupNode, option, ref, _i, _len, _ref;
+      if (node.group) {
+        groupNode = this.select.childNodes[node.index];
+        _ref = node.children;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          option = _ref[_i];
+          console.log(groupNode.childNodes[option.index].selected);
+          if (!groupNode.childNodes[option.index].selected) {
+            groupNode.childNodes[option.index].selected = true;
+            this.selected.push(option);
+          }
+        }
+      } else {
+        ref = this.select;
+        if (node.groupindex) {
+          ref = this.select.childNodes[node.groupindex];
+        }
+        if (!ref.childNodes[node.index].selected) {
+          ref.childNodes[node.index].selected = true;
+          this.selected.push(node);
+        }
+      }
+      this.$bttrSelect.trigger('onSelectedUpdate', [this.selected, node]);
+      return console.log(this.selected);
     };
 
     /*
@@ -353,6 +412,7 @@
     };
 
     BttrMultiselect.prototype.refresh = function() {
+      this.selected = [];
       this._parse();
       return console.log('refreshing');
     };
