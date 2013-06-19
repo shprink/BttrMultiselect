@@ -62,12 +62,13 @@ Select2Parser = (function() {
 
 	Select2Parser.prototype.process = function(element, collection) {
 		var group;
+		var self = this;
 		if (element.is("option")) {
 			collection.push(this.optionToData(element));
 		} else if (element.is("optgroup")) {
 			group = this.optionToData(element);
 			element.children().each2(function(i, elm) {
-				process(elm, group.children);
+				self.process(elm, group.children);
 			});
 			if (group.children.length > 0) {
 				collection.push(group);
