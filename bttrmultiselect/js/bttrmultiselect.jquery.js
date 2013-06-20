@@ -1,9 +1,12 @@
 (function() {
-  var $, BttrMultiselect, BttrMultiselectParser, root,
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  var $, AbstractBttr, BttrMultiselect, BttrMultiselectParser, BttrSingle, root, _ref, _ref1,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Array.prototype.searchSubstring = function(term) {
     var i, j, r, _i, _len, _results;
+
     r = new RegExp(term, 'i');
     _results = [];
     for (j = _i = 0, _len = this.length; _i < _len; j = ++_i) {
@@ -19,6 +22,7 @@
 
   Array.prototype.binarySearch = function(find, comparator) {
     var comparison, high, i, low;
+
     low = 0;
     high = this.length - 1;
     console.log(find, 'find');
@@ -44,6 +48,7 @@
   BttrMultiselectParser = (function() {
     function BttrMultiselectParser(select) {
       var child, index, _i, _len, _ref;
+
       this.totalNode = 0;
       this.hasGroup = false;
       this.parsed = [];
@@ -65,6 +70,7 @@
 
     BttrMultiselectParser.prototype.addGroup = function(group, index) {
       var array_index, g, option, _i, _len, _ref, _results;
+
       this.hasGroup = true;
       array_index = this.parsed.length;
       g = {
@@ -86,6 +92,7 @@
 
     BttrMultiselectParser.prototype.addOption = function(option, index, array_index, group_index, group_disabled) {
       var o;
+
       if (option.nodeName.toUpperCase() === "OPTION") {
         o = {
           index: index
@@ -112,9 +119,10 @@
 
   })();
 
-  BttrMultiselect = (function() {
-    function BttrMultiselect(select, options) {
+  AbstractBttr = (function() {
+    function AbstractBttr(select, options) {
       var multiple;
+
       this.select = select;
       this.options = options != null ? options : {};
       this._testGlobalClick = __bind(this._testGlobalClick, this);
@@ -133,6 +141,9 @@
       this.$list = this.$bttrSelect.find('ul.bttrmultiselect-list');
       this.$bttrSelect.insertAfter(this.$select);
       this.width = this.$select.outerWidth();
+      if (this.$select.is(':disabled')) {
+        this.disable();
+      }
       this.$select.hide();
       this._setButtonWidth();
       this._setContentWidth();
@@ -153,8 +164,9 @@
     */
 
 
-    BttrMultiselect.prototype._getDefaultOptions = function() {
+    AbstractBttr.prototype._getDefaultOptions = function() {
       var options;
+
       return options = {
         search: {
           enabled: true,
@@ -165,12 +177,13 @@
       };
     };
 
-    BttrMultiselect.prototype._getTemplate = function() {
+    AbstractBttr.prototype._getTemplate = function() {
       return "<div class='bttrmultiselect'>\n	<div class='bttrmultiselect-inner'>\n		<a href=\"javascript:void(0)\" class='bttrmultiselect-button'>\n			<span class=\"bttrmultiselect-selected\"></span>\n			<b></b>\n		</a>\n		<div class='bttrmultiselect-content'>\n			<div class='bttrmultiselect-search'>\n				<input type=\"text\" />\n			</div>\n			<ul class='bttrmultiselect-list'></ul>\n		</div>\n	</div>\n</div>";
     };
 
-    BttrMultiselect.prototype._bindEvents = function() {
+    AbstractBttr.prototype._bindEvents = function() {
       var _this = this;
+
       this.$button.on('click', function(event) {
         if (_this.opened) {
           return _this.close();
@@ -188,8 +201,9 @@
       });
     };
 
-    BttrMultiselect.prototype._setupListeners = function() {
+    AbstractBttr.prototype._setupListeners = function() {
       var _this = this;
+
       this.$bttrSelect.bind('onGroupSelection', function(evt, $group, $checkbox) {
         if ($checkbox.is(':checked')) {
           return $group.remove();
@@ -207,16 +221,17 @@
       });
     };
 
-    BttrMultiselect.prototype._setButtonWidth = function() {
+    AbstractBttr.prototype._setButtonWidth = function() {
       return this.$button.css('width', this.width);
     };
 
-    BttrMultiselect.prototype._setContentWidth = function() {
+    AbstractBttr.prototype._setContentWidth = function() {
       return this.$bttrSelect.css('width', this.width);
     };
 
-    BttrMultiselect.prototype._setContentPosition = function() {
+    AbstractBttr.prototype._setContentPosition = function() {
       var pos;
+
       pos = this.$button.offset();
       return this.$bttrSelect.css({
         'top': pos.top,
@@ -224,18 +239,19 @@
       });
     };
 
-    BttrMultiselect.prototype._resetSearch = function() {
+    AbstractBttr.prototype._resetSearch = function() {
       return this.$search.val('');
     };
 
-    BttrMultiselect.prototype._testGlobalClick = function(event) {
+    AbstractBttr.prototype._testGlobalClick = function(event) {
       if (!this.$bttrSelect.find(event.target).length) {
         return this.close();
       }
     };
 
-    BttrMultiselect.prototype._injectNodes = function() {
+    AbstractBttr.prototype._injectNodes = function() {
       var node, _i, _len, _ref, _results;
+
       this.$list.empty();
       _ref = this.data.parsed;
       _results = [];
@@ -256,8 +272,9 @@
       return _results;
     };
 
-    BttrMultiselect.prototype._injectGroup = function(group) {
+    AbstractBttr.prototype._injectGroup = function(group) {
       var $group, classes, self;
+
       classes = [];
       classes.push("bttr-group");
       if (group.disabled) {
@@ -278,6 +295,7 @@
       $group.find('.bttr-group-label').click(function(event) {
         var icon, option, _i, _len, _ref,
           _this = this;
+
         icon = $(this).find('i');
         if (!$(this).hasClass('optionsLoaded')) {
           icon.removeClass('icon-folder-close-alt');
@@ -307,8 +325,9 @@
       return this.$list.append($group);
     };
 
-    BttrMultiselect.prototype._injectOption = function(option, $group) {
+    AbstractBttr.prototype._injectOption = function(option, $group) {
       var $option, classes, self;
+
       classes = [];
       classes.push("bttr-option");
       if (option.disabled) {
@@ -335,13 +354,13 @@
       }
     };
 
-    BttrMultiselect.prototype._parse = function() {
+    AbstractBttr.prototype._parse = function() {
       this.data = new BttrMultiselectParser(this.select);
       this._injectNodes();
       return this.parsed = true;
     };
 
-    BttrMultiselect.prototype._findNode = function(array, index) {
+    AbstractBttr.prototype._findNode = function(array, index) {
       if (!array) {
         return {};
       }
@@ -356,12 +375,13 @@
       });
     };
 
-    BttrMultiselect.prototype._findGroup = function(groupIndex) {
+    AbstractBttr.prototype._findGroup = function(groupIndex) {
       return this._findNode(this.data.parsed, groupIndex);
     };
 
-    BttrMultiselect.prototype._findOption = function(optionIndex, groupIndex) {
+    AbstractBttr.prototype._findOption = function(optionIndex, groupIndex) {
       var group;
+
       if (groupIndex) {
         group = this._findNode(this.data.parsed, groupIndex);
         return this._findNode(group.chidren, optionIndex);
@@ -369,7 +389,7 @@
       return this._findNode(this.data.parsed, optionIndex);
     };
 
-    BttrMultiselect.prototype._unRegisterNode = function(node) {
+    AbstractBttr.prototype._unRegisterNode = function(node) {
       if (node.groupindex) {
         if (this.$list.has("[data-groupindex=" + node.groupindex + "]")) {
           return this._injectOption(node, this.$list.find("[data-groupindex=" + node.groupindex + "]"));
@@ -381,8 +401,9 @@
       }
     };
 
-    BttrMultiselect.prototype._registerNode = function(node) {
+    AbstractBttr.prototype._registerNode = function(node) {
       var groupNode, option, ref, _i, _len, _ref;
+
       if (node.group) {
         groupNode = this.select.childNodes[node.index];
         _ref = node.children;
@@ -413,11 +434,12 @@
     */
 
 
-    BttrMultiselect.prototype.bttrmultiselect = function() {
+    AbstractBttr.prototype.bttrmultiselect = function() {
       return this;
     };
 
-    BttrMultiselect.prototype.open = function() {
+    AbstractBttr.prototype.open = function() {
+      console.log('opening');
       this.$bttrSelect.addClass('on');
       $(document).click(this._testGlobalClick);
       this.opened = true;
@@ -426,39 +448,76 @@
       }
     };
 
-    BttrMultiselect.prototype.close = function() {
+    AbstractBttr.prototype.close = function() {
+      console.log('closing');
       this.$bttrSelect.removeClass('on');
       $(document).unbind('click', this._testGlobalClick);
       return this.opened = false;
     };
 
-    BttrMultiselect.prototype.refresh = function() {
+    AbstractBttr.prototype.refresh = function() {
+      console.log('refreshing');
       this.selected = [];
-      this._parse();
-      return console.log('refreshing');
+      return this._parse();
     };
 
-    BttrMultiselect.prototype.checkAll = function() {};
+    AbstractBttr.prototype.checkAll = function() {
+      return console.log('checking all');
+    };
 
-    BttrMultiselect.prototype.uncheckAll = function() {};
+    AbstractBttr.prototype.uncheckAll = function() {
+      return console.log('unchecking all');
+    };
 
-    BttrMultiselect.prototype.enable = function() {};
+    AbstractBttr.prototype.enable = function() {
+      return console.log('enabling');
+    };
 
-    BttrMultiselect.prototype.disable = function() {};
+    AbstractBttr.prototype.disable = function() {
+      return console.log('disabling');
+    };
 
-    BttrMultiselect.prototype.getChecked = function() {
+    AbstractBttr.prototype.getChecked = function() {
+      console.log('getting checked');
       return this.$select.find('option:checked');
     };
 
-    BttrMultiselect.prototype.setOptions = function(options) {};
+    AbstractBttr.prototype.setOptions = function(options) {
+      return console.log('setting options after initialization');
+    };
 
-    BttrMultiselect.prototype.destroy = function() {
+    AbstractBttr.prototype.destroy = function() {
+      console.log('destroying');
       return this.$select.removeClass("bttrmultiselect-done");
     };
 
-    return BttrMultiselect;
+    return AbstractBttr;
 
   })();
+
+  BttrSingle = (function(_super) {
+    __extends(BttrSingle, _super);
+
+    function BttrSingle() {
+      _ref = BttrSingle.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    return BttrSingle;
+
+  })(AbstractBttr);
+
+  BttrMultiselect = (function(_super) {
+    __extends(BttrMultiselect, _super);
+
+    function BttrMultiselect() {
+      _ref1 = BttrMultiselect.__super__.constructor.apply(this, arguments);
+      return _ref1;
+    }
+
+    return BttrMultiselect;
+
+  })(AbstractBttr);
 
   root = this;
 
@@ -468,6 +527,7 @@
     bttrmultiselect: function(options) {
       return this.each(function() {
         var $this;
+
         $this = $(this);
         if (!$this.hasClass("bttrmultiselect-done")) {
           return $this.data('bttrmultiselect', new BttrMultiselect(this, options));

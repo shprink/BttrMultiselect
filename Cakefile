@@ -15,6 +15,8 @@ js_files = {
 		"bttrmultiselect/js/bttrmultiselect.jquery.js": [
 				"#{ pathToCoffeeSource }lib/Array.coffee"
 				"#{ pathToCoffeeSource }lib/BttrMultiselectParser.coffee"
+				"#{ pathToCoffeeSource }lib/AbstractBttr.coffee"
+				"#{ pathToCoffeeSource }lib/BttrSingle.coffee"
 				"#{ pathToCoffeeSource }lib/BttrMultiselect.coffee"
 				"#{ pathToCoffeeSource }bttrmultiselect.jquery.coffee"
 				]
