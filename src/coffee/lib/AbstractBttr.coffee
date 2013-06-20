@@ -5,14 +5,7 @@ class AbstractBttr
 				# Set options
 				$.extend @options, @_getDefaultOptions(), @options
 
-				# Is the select multiple?
-				multiple = @$select.attr 'multiple'
-				if typeof multiple isnt 'undefined' and multiple isnt false
-						@isMultiple = true;
-				else
-						@isMultiple = false;
-						
-				console.log @isMultiple
+				
 		
 				# We create our elements
 				@$bttrSelect = $(@_getTemplate())

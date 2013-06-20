@@ -4,7 +4,6 @@
   BttrMultiselectParser = (function() {
     function BttrMultiselectParser(select) {
       var child, index, _i, _len, _ref;
-
       this.totalNode = 0;
       this.hasGroup = false;
       this.parsed = [];
@@ -26,7 +25,6 @@
 
     BttrMultiselectParser.prototype.addGroup = function(group, index) {
       var array_index, g, option, _i, _len, _ref, _results;
-
       this.hasGroup = true;
       array_index = this.parsed.length;
       g = {
@@ -48,7 +46,6 @@
 
     BttrMultiselectParser.prototype.addOption = function(option, index, array_index, group_index, group_disabled) {
       var o;
-
       if (option.nodeName.toUpperCase() === "OPTION") {
         o = {
           index: index

@@ -1,12 +1,11 @@
 (function() {
-  var $, AbstractBttr, BttrMultiselect, BttrMultiselectParser, BttrSingle, root, _ref, _ref1,
+  var $, AbstractBttr, BttrMultiselect, BttrMultiselectParser, BttrSelect, root, _ref, _ref1,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Array.prototype.searchSubstring = function(term) {
     var i, j, r, _i, _len, _results;
-
     r = new RegExp(term, 'i');
     _results = [];
     for (j = _i = 0, _len = this.length; _i < _len; j = ++_i) {
@@ -22,7 +21,6 @@
 
   Array.prototype.binarySearch = function(find, comparator) {
     var comparison, high, i, low;
-
     low = 0;
     high = this.length - 1;
     console.log(find, 'find');
@@ -48,7 +46,6 @@
   BttrMultiselectParser = (function() {
     function BttrMultiselectParser(select) {
       var child, index, _i, _len, _ref;
-
       this.totalNode = 0;
       this.hasGroup = false;
       this.parsed = [];
@@ -70,7 +67,6 @@
 
     BttrMultiselectParser.prototype.addGroup = function(group, index) {
       var array_index, g, option, _i, _len, _ref, _results;
-
       this.hasGroup = true;
       array_index = this.parsed.length;
       g = {
@@ -92,7 +88,6 @@
 
     BttrMultiselectParser.prototype.addOption = function(option, index, array_index, group_index, group_disabled) {
       var o;
-
       if (option.nodeName.toUpperCase() === "OPTION") {
         o = {
           index: index
@@ -121,20 +116,11 @@
 
   AbstractBttr = (function() {
     function AbstractBttr(select, options) {
-      var multiple;
-
       this.select = select;
       this.options = options != null ? options : {};
       this._testGlobalClick = __bind(this._testGlobalClick, this);
       this.$select = $(this.select);
       $.extend(this.options, this._getDefaultOptions(), this.options);
-      multiple = this.$select.attr('multiple');
-      if (typeof multiple !== 'undefined' && multiple !== false) {
-        this.isMultiple = true;
-      } else {
-        this.isMultiple = false;
-      }
-      console.log(this.isMultiple);
       this.$bttrSelect = $(this._getTemplate());
       this.$button = this.$bttrSelect.find('a.bttrmultiselect-button');
       this.$search = this.$bttrSelect.find('div.bttrmultiselect-search input');
@@ -166,7 +152,6 @@
 
     AbstractBttr.prototype._getDefaultOptions = function() {
       var options;
-
       return options = {
         search: {
           enabled: true,
@@ -183,7 +168,6 @@
 
     AbstractBttr.prototype._bindEvents = function() {
       var _this = this;
-
       this.$button.on('click', function(event) {
         if (_this.opened) {
           return _this.close();
@@ -203,7 +187,6 @@
 
     AbstractBttr.prototype._setupListeners = function() {
       var _this = this;
-
       this.$bttrSelect.bind('onGroupSelection', function(evt, $group, $checkbox) {
         if ($checkbox.is(':checked')) {
           return $group.remove();
@@ -231,7 +214,6 @@
 
     AbstractBttr.prototype._setContentPosition = function() {
       var pos;
-
       pos = this.$button.offset();
       return this.$bttrSelect.css({
         'top': pos.top,
@@ -251,7 +233,6 @@
 
     AbstractBttr.prototype._injectNodes = function() {
       var node, _i, _len, _ref, _results;
-
       this.$list.empty();
       _ref = this.data.parsed;
       _results = [];
@@ -274,7 +255,6 @@
 
     AbstractBttr.prototype._injectGroup = function(group) {
       var $group, classes, self;
-
       classes = [];
       classes.push("bttr-group");
       if (group.disabled) {
@@ -295,7 +275,6 @@
       $group.find('.bttr-group-label').click(function(event) {
         var icon, option, _i, _len, _ref,
           _this = this;
-
         icon = $(this).find('i');
         if (!$(this).hasClass('optionsLoaded')) {
           icon.removeClass('icon-folder-close-alt');
@@ -327,7 +306,6 @@
 
     AbstractBttr.prototype._injectOption = function(option, $group) {
       var $option, classes, self;
-
       classes = [];
       classes.push("bttr-option");
       if (option.disabled) {
@@ -381,7 +359,6 @@
 
     AbstractBttr.prototype._findOption = function(optionIndex, groupIndex) {
       var group;
-
       if (groupIndex) {
         group = this._findNode(this.data.parsed, groupIndex);
         return this._findNode(group.chidren, optionIndex);
@@ -403,7 +380,6 @@
 
     AbstractBttr.prototype._registerNode = function(node) {
       var groupNode, option, ref, _i, _len, _ref;
-
       if (node.group) {
         groupNode = this.select.childNodes[node.index];
         _ref = node.children;
@@ -495,15 +471,15 @@
 
   })();
 
-  BttrSingle = (function(_super) {
-    __extends(BttrSingle, _super);
+  BttrSelect = (function(_super) {
+    __extends(BttrSelect, _super);
 
-    function BttrSingle() {
-      _ref = BttrSingle.__super__.constructor.apply(this, arguments);
+    function BttrSelect() {
+      _ref = BttrSelect.__super__.constructor.apply(this, arguments);
       return _ref;
     }
 
-    return BttrSingle;
+    return BttrSelect;
 
   })(AbstractBttr);
 
@@ -526,11 +502,20 @@
   $.fn.extend({
     bttrmultiselect: function(options) {
       return this.each(function() {
-        var $this;
-
+        var $this, instance, multiple;
         $this = $(this);
         if (!$this.hasClass("bttrmultiselect-done")) {
-          return $this.data('bttrmultiselect', new BttrMultiselect(this, options));
+          multiple = $this.attr('multiple');
+          if (typeof multiple !== 'undefined' && multiple !== false) {
+            console.log('BttrMultiselect');
+            instance = new BttrMultiselect(this, options);
+          } else {
+            console.log('BttrSelect');
+            instance = new BttrSelect(this, options);
+          }
+          if (!$this.hasClass("bttrmultiselect-done")) {
+            return $this.data('bttrmultiselect', instance);
+          }
         }
       });
     }

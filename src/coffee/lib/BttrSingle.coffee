@@ -1,1 +1,0 @@
-class BttrSingle extends AbstractBttr
