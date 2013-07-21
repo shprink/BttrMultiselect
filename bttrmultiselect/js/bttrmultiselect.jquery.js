@@ -502,19 +502,25 @@
   $.fn.extend({
     bttrmultiselect: function(options) {
       return this.each(function() {
-        var $this, instance, multiple;
+        var $this, instance, multiple, publicMethods;
+        console.log('in the loop');
         $this = $(this);
         if (!$this.hasClass("bttrmultiselect-done")) {
           multiple = $this.attr('multiple');
           if (typeof multiple !== 'undefined' && multiple !== false) {
-            console.log('BttrMultiselect');
+            console.log('Instanciating BttrMultiselect');
             instance = new BttrMultiselect(this, options);
           } else {
-            console.log('BttrSelect');
+            console.log('Instanciating BttrSelect');
             instance = new BttrSelect(this, options);
           }
-          if (!$this.hasClass("bttrmultiselect-done")) {
-            return $this.data('bttrmultiselect', instance);
+          return $this.data('bttrmultiselect', instance);
+        } else {
+          publicMethods = ['open', 'close'];
+          console.log($.inArray(options, publicMethods));
+          if (typeof options === 'string' && $.inArray(options, publicMethods) !== -1) {
+            console.log('Running method ' + options);
+            return $this.data('bttrmultiselect')[options]();
           }
         }
       });
