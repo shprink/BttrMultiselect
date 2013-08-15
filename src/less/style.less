@@ -22,12 +22,11 @@
 	margin-top: -1px;
 	width: 100%;
 	opacity: 0;
-	.scale(0.8);
-	-webkit-transition: 0.3s all cubic-bezier(0.250, 0.460, 0.450, 0.940);
-	-moz-transition: 0.3s all cubic-bezier(0.250, 0.460, 0.450, 0.940);
-	-ms-transition: 0.3s all cubic-bezier(0.250, 0.460, 0.450, 0.940);
-	-o-transition: 0.3s all cubic-bezier(0.250, 0.460, 0.450, 0.940);
-	transition: 0.3s all cubic-bezier(0.250, 0.460, 0.450, 0.940);
+	-webkit-transition: linear 0.1s;
+	-moz-transition: linear 0.1s;
+	-ms-transition: linear 0.1s;
+	-o-transition: linear 0.1s;
+	transition: linear 0.1s;
     }
 
     .bttrmultiselect-search,
@@ -76,6 +75,11 @@
 	cursor: default;
     }
 
+    .bttr-group.bttr-group-selected,
+    .bttr-option.bttr-option-selected{
+		display: none;
+    }
+
     .bttr-option{
 	padding: 5px 20px;
     }
@@ -88,5 +92,4 @@
 .bttrmultiselect.on div.bttrmultiselect-content{
     visibility: visible;
     opacity: 1;
-    .scale;
 }

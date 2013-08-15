@@ -29,7 +29,7 @@
       array_index = this.parsed.length;
       g = {
         group: true,
-        index: index,
+        childNodesIndex: index,
         text: group.label,
         disabled: group.disabled,
         children: []
@@ -39,20 +39,25 @@
       _results = [];
       for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
         option = _ref[index];
-        _results.push(this.addOption(option, index, array_index, g.index, g.disabled));
+        _results.push(this.addOption(option, index, array_index, g.children, g.childNodesIndex, g.disabled));
       }
       return _results;
     };
 
-    BttrMultiselectParser.prototype.addOption = function(option, index, array_index, group_index, group_disabled) {
-      var o;
+    BttrMultiselectParser.prototype.addOption = function(option, index, array_index, children, group_index, group_disabled) {
+      var o, option_array_index;
       if (option.nodeName.toUpperCase() === "OPTION") {
         o = {
-          index: index
+          childNodesIndex: index
         };
         if (group_index) {
-          o.groupindex = group_index;
+          option_array_index = children.length;
+          o.groupChildNodesIndex = group_index;
+          o.groupIndex = array_index;
+        } else {
+          option_array_index = this.parsed.length;
         }
+        o.index = option_array_index;
         if (option.text !== "") {
           o.text = option.text;
           o.selected = option.selected;
@@ -60,8 +65,8 @@
         } else {
           o.empty = true;
         }
-        if (array_index) {
-          return this.parsed[array_index].children.push(o);
+        if (children) {
+          return children.push(o);
         } else {
           return this.parsed.push(o);
         }

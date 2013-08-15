@@ -71,7 +71,7 @@
       array_index = this.parsed.length;
       g = {
         group: true,
-        index: index,
+        childNodesIndex: index,
         text: group.label,
         disabled: group.disabled,
         children: []
@@ -81,20 +81,25 @@
       _results = [];
       for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
         option = _ref[index];
-        _results.push(this.addOption(option, index, array_index, g.index, g.disabled));
+        _results.push(this.addOption(option, index, array_index, g.children, g.childNodesIndex, g.disabled));
       }
       return _results;
     };
 
-    BttrMultiselectParser.prototype.addOption = function(option, index, array_index, group_index, group_disabled) {
-      var o;
+    BttrMultiselectParser.prototype.addOption = function(option, index, array_index, children, group_index, group_disabled) {
+      var o, option_array_index;
       if (option.nodeName.toUpperCase() === "OPTION") {
         o = {
-          index: index
+          childNodesIndex: index
         };
         if (group_index) {
-          o.groupindex = group_index;
+          option_array_index = children.length;
+          o.groupChildNodesIndex = group_index;
+          o.groupIndex = array_index;
+        } else {
+          option_array_index = this.parsed.length;
         }
+        o.index = option_array_index;
         if (option.text !== "") {
           o.text = option.text;
           o.selected = option.selected;
@@ -102,8 +107,8 @@
         } else {
           o.empty = true;
         }
-        if (array_index) {
-          return this.parsed[array_index].children.push(o);
+        if (children) {
+          return children.push(o);
         } else {
           return this.parsed.push(o);
         }
@@ -125,6 +130,7 @@
       this.$button = this.$bttrSelect.find('a.bttrmultiselect-button');
       this.$search = this.$bttrSelect.find('div.bttrmultiselect-search input');
       this.$list = this.$bttrSelect.find('ul.bttrmultiselect-list');
+      this.$selectedList = this.$bttrSelect.find('ul.bttrmultiselect-selected-list');
       this.$bttrSelect.insertAfter(this.$select);
       this.width = this.$select.outerWidth();
       if (this.$select.is(':disabled')) {
@@ -163,7 +169,7 @@
     };
 
     AbstractBttr.prototype._getTemplate = function() {
-      return "<div class='bttrmultiselect'>\n	<div class='bttrmultiselect-inner'>\n		<a href=\"javascript:void(0)\" class='bttrmultiselect-button'>\n			<span class=\"bttrmultiselect-selected\"></span>\n			<b></b>\n		</a>\n		<div class='bttrmultiselect-content'>\n			<div class='bttrmultiselect-search'>\n				<input type=\"text\" />\n			</div>\n			<ul class='bttrmultiselect-list'></ul>\n		</div>\n	</div>\n</div>";
+      return "<div class='bttrmultiselect'>\n	<div class='bttrmultiselect-inner'>\n		<a href=\"javascript:void(0)\" class='bttrmultiselect-button'>\n			<span class=\"bttrmultiselect-selected\"></span>\n			<b></b>\n		</a>\n		<div class='bttrmultiselect-content'>\n			<div class='bttrmultiselect-search'>\n				<input type=\"text\" />\n			</div>\n			<ul class='bttrmultiselect-list'></ul>\n			<ul class='bttrmultiselect-selected-list'></ul>\n		</div>\n	</div>\n</div>";
     };
 
     AbstractBttr.prototype._bindEvents = function() {
@@ -187,14 +193,8 @@
 
     AbstractBttr.prototype._setupListeners = function() {
       var _this = this;
-      this.$bttrSelect.bind('onGroupSelection', function(evt, $group, $checkbox) {
-        if ($checkbox.is(':checked')) {
-          return $group.remove();
-        }
-      });
-      this.$bttrSelect.bind('onOptionSelection', function(evt, $option) {
-        return $option.remove();
-      });
+      this.$bttrSelect.bind('onGroupSelection', function(evt, $group, $checkbox) {});
+      this.$bttrSelect.bind('onOptionSelection', function(evt, $option) {});
       this.$bttrSelect.bind('onSelectedUpdate', function(evt, selected, node) {
         console.log(selected.length, 'selected.length');
         return _this.$button.find('.bttrmultiselect-selected').text(selected.length);
@@ -232,20 +232,20 @@
     };
 
     AbstractBttr.prototype._injectNodes = function() {
-      var node, _i, _len, _ref, _results;
+      var index, node, _i, _len, _ref, _results;
       this.$list.empty();
       _ref = this.data.parsed;
       _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        node = _ref[_i];
+      for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
+        node = _ref[index];
         if (node.group) {
           if (node.children.length > 0) {
-            _results.push(this._injectGroup(node));
+            _results.push(this._injectGroup(index, node));
           } else {
             _results.push(void 0);
           }
         } else if (!node.empty) {
-          _results.push(this._injectOption(node));
+          _results.push(this._injectOption(index, node));
         } else {
           _results.push(void 0);
         }
@@ -253,42 +253,39 @@
       return _results;
     };
 
-    AbstractBttr.prototype._injectGroup = function(group) {
+    AbstractBttr.prototype._injectGroup = function(groupIndex, group) {
       var $group, classes, self;
       classes = [];
       classes.push("bttr-group");
       if (group.disabled) {
         classes.push("bttr-group-disabled");
       }
-      $group = $("<li data-groupindex=\"" + group.index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div class=\"bttr-group-label\">\n				<i class=\"icon-folder-close-alt\"></i> " + group.text + "\n				<span>" + group.children.length + "</span>\n	</div>\n	<ul class=\"bttr-options\" style=\"display:none\"></ul>\n</li>");
-      if (!group.disabled && this.isMultiple) {
-        $group.find('.bttr-group-label').append($('<input type="checkbox">'));
-      }
+      $group = $("<li data-groupindex=\"" + groupIndex + "\" class=\"" + (classes.join(' ')) + "\">\n	<div class=\"bttr-group-label\">\n		<i class=\"icon-folder-close-alt\"></i> " + group.text + "\n		<span>" + group.children.length + "</span>\n	</div>\n	<ul class=\"bttr-options\" style=\"display:none\"></ul>\n</li>");
       self = this;
       $group.find('input').click(function(event) {
         event.stopPropagation();
         self.$bttrSelect.trigger('onBeforeGroupSelection', [$group, $(this), self]);
-        self._registerNode(group);
+        self._registerNode($(this), group);
         self.$bttrSelect.trigger('onGroupSelection', [$group, $(this), self]);
         return self.$select.trigger('change', [event]);
       });
       $group.find('.bttr-group-label').click(function(event) {
-        var icon, option, _i, _len, _ref,
+        var icon, index, option, _i, _len, _ref,
           _this = this;
         icon = $(this).find('i');
         if (!$(this).hasClass('optionsLoaded')) {
           icon.removeClass('icon-folder-close-alt');
           icon.addClass('icon-spinner icon-spin');
           _ref = group.children;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            option = _ref[_i];
-            self._injectOption(option, $group);
+          for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
+            option = _ref[index];
+            self._injectOption(index, option, groupIndex, $group);
           }
           icon.removeClass('icon-spinner icon-spin');
           icon.addClass('icon-folder-close-alt');
           $(this).addClass('optionsLoaded');
         }
-        return $group.find('ul.bttr-options').toggle('slow', function() {
+        return $group.find('ul.bttr-options').toggle(100, function() {
           if (icon.hasClass('icon-folder-close-alt')) {
             icon.removeClass('icon-folder-close-alt');
             icon.addClass('icon-folder-open-alt');
@@ -298,13 +295,13 @@
           }
           return self.$list.animate({
             scrollTop: $(_this).offset().top + (self.$list.scrollTop() - self.$list.offset().top)
-          }, 200);
+          }, 50);
         });
       });
       return this.$list.append($group);
     };
 
-    AbstractBttr.prototype._injectOption = function(option, $group) {
+    AbstractBttr.prototype._injectOption = function(index, option, groupIndex, $group) {
       var $option, classes, self;
       classes = [];
       classes.push("bttr-option");
@@ -314,15 +311,15 @@
       if (option.selected) {
         classes.push("bttr-option-selected");
       }
-      $option = $("<li data-optionindex=\"" + option.index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div>" + option.text + "</div>\n</li>");
+      $option = $("<li data-groupindex=\"" + groupIndex + "\" data-optionindex=\"" + index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div>" + option.text + "</div>\n</li>");
       if (option.groupindex) {
         $option.attr('data-groupindex', option.groupindex);
       }
       self = this;
       $option.click(function(event) {
-        self.$bttrSelect.trigger('onBeforeOptionSelection', [$option, self]);
-        self._registerNode(option);
-        self.$bttrSelect.trigger('onOptionSelection', [$option, self]);
+        self.$bttrSelect.trigger('onBeforeOptionSelection', [$(this), self]);
+        self._registerNode($(this), option);
+        self.$bttrSelect.trigger('onOptionSelection', [$(this), self]);
         return self.$select.trigger('change', [event]);
       });
       if ($group) {
@@ -334,75 +331,68 @@
 
     AbstractBttr.prototype._parse = function() {
       this.data = new BttrMultiselectParser(this.select);
+      console.log(this.data.parsed, 'select parsed');
       this._injectNodes();
       return this.parsed = true;
     };
 
-    AbstractBttr.prototype._findNode = function(array, index) {
-      if (!array) {
-        return {};
-      }
-      return array.binarySearch(index, function(object, find) {
-        if (object.index > find) {
-          return 1;
-        } else if (object.index < find) {
-          return -1;
-        } else {
-          return 0;
-        }
-      });
-    };
-
-    AbstractBttr.prototype._findGroup = function(groupIndex) {
-      return this._findNode(this.data.parsed, groupIndex);
-    };
-
-    AbstractBttr.prototype._findOption = function(optionIndex, groupIndex) {
-      var group;
-      if (groupIndex) {
-        group = this._findNode(this.data.parsed, groupIndex);
-        return this._findNode(group.chidren, optionIndex);
-      }
-      return this._findNode(this.data.parsed, optionIndex);
+    AbstractBttr.prototype._addOptionToSelectedList = function($option, option) {
+      var $optionClone,
+        _this = this;
+      $optionClone = $option.clone();
+      $option.addClass('bttr-option-selected');
+      $optionClone.append($('<a class="bttrmultiselect-option-remove"><i class="icon-remove"></i></a>').on('click', function(event) {
+        event.stopPropagation();
+        _this._unRegisterNode(option);
+        $option.removeClass('bttr-option-selected');
+        return $optionClone.remove();
+      }));
+      return this.$selectedList.append($optionClone);
     };
 
     AbstractBttr.prototype._unRegisterNode = function(node) {
-      if (node.groupindex) {
-        if (this.$list.has("[data-groupindex=" + node.groupindex + "]")) {
-          return this._injectOption(node, this.$list.find("[data-groupindex=" + node.groupindex + "]"));
-        } else {
-          return this._injectGroup(this._findGroup(node.groupindex));
-        }
-      } else {
-        return this._injectOption(node);
+      var i, ref;
+      ref = this.select;
+      if (node.groupChildNodesIndex) {
+        ref = this.select.childNodes[node.groupChildNodesIndex];
       }
+      ref.childNodes[node.childNodesIndex].selected = false;
+      i = this.selected.indexOf(node);
+      if (i !== -1) {
+        this.selected.splice(i, 1);
+      }
+      this.$bttrSelect.trigger('onSelectedUpdate', [this.selected, node]);
+      return console.log(this.selected, '_unRegisterNode');
     };
 
-    AbstractBttr.prototype._registerNode = function(node) {
+    AbstractBttr.prototype._registerNode = function($node, node) {
       var groupNode, option, ref, _i, _len, _ref;
       if (node.group) {
-        groupNode = this.select.childNodes[node.index];
+        groupNode = this.select.childNodes[node.childNodesIndex];
         _ref = node.children;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           option = _ref[_i];
-          console.log(groupNode.childNodes[option.index].selected);
-          if (!groupNode.childNodes[option.index].selected) {
-            groupNode.childNodes[option.index].selected = true;
+          console.log(groupNode.childNodes[option.childNodesIndex].selected);
+          if (!groupNode.childNodes[option.childNodesIndex].selected) {
+            groupNode.childNodes[option.childNodesIndex].selected = true;
+            this._addOptionToSelectedList($node.find("[data-optionindex=" + option.index + "]"), option);
             this.selected.push(option);
           }
         }
+        $node.addClass('bttr-group-selected');
       } else {
         ref = this.select;
-        if (node.groupindex) {
-          ref = this.select.childNodes[node.groupindex];
+        if (node.groupChildNodesIndex) {
+          ref = this.select.childNodes[node.groupChildNodesIndex];
         }
-        if (!ref.childNodes[node.index].selected) {
-          ref.childNodes[node.index].selected = true;
+        if (!ref.childNodes[node.childNodesIndex].selected) {
+          ref.childNodes[node.childNodesIndex].selected = true;
           this.selected.push(node);
         }
+        this._addOptionToSelectedList($node, node);
       }
       this.$bttrSelect.trigger('onSelectedUpdate', [this.selected, node]);
-      return console.log(this.selected);
+      return console.log(this.selected, '_registerNode');
     };
 
     /*
@@ -491,6 +481,57 @@
       return _ref1;
     }
 
+    BttrMultiselect.prototype._injectGroup = function(groupIndex, group) {
+      var $group, classes, self;
+      classes = [];
+      classes.push("bttr-group");
+      if (group.disabled) {
+        classes.push("bttr-group-disabled");
+      }
+      $group = $("<li data-groupindex=\"" + groupIndex + "\" class=\"" + (classes.join(' ')) + "\">\n	<div class=\"bttr-group-label\">\n		<i class=\"icon-folder-close-alt\"></i> " + group.text + "\n		<span>" + group.children.length + "</span>\n	</div>\n	<ul class=\"bttr-options\" style=\"display:none\"></ul>\n</li>");
+      if (!group.disabled) {
+        $group.find('.bttr-group-label').append($('<input type="checkbox">'));
+      }
+      self = this;
+      $group.find('input').click(function(event) {
+        event.stopPropagation();
+        self.$bttrSelect.trigger('onBeforeGroupSelection', [$group, $(this), self]);
+        self._registerNode($(this), group);
+        self.$bttrSelect.trigger('onGroupSelection', [$group, $(this), self]);
+        return self.$select.trigger('change', [event]);
+      });
+      $group.find('.bttr-group-label').click(function(event) {
+        var icon, index, option, _i, _len, _ref2,
+          _this = this;
+        icon = $(this).find('i');
+        if (!$(this).hasClass('optionsLoaded')) {
+          icon.removeClass('icon-folder-close-alt');
+          icon.addClass('icon-spinner icon-spin');
+          _ref2 = group.children;
+          for (index = _i = 0, _len = _ref2.length; _i < _len; index = ++_i) {
+            option = _ref2[index];
+            self._injectOption(index, option, groupIndex, $group);
+          }
+          icon.removeClass('icon-spinner icon-spin');
+          icon.addClass('icon-folder-close-alt');
+          $(this).addClass('optionsLoaded');
+        }
+        return $group.find('ul.bttr-options').toggle(100, function() {
+          if (icon.hasClass('icon-folder-close-alt')) {
+            icon.removeClass('icon-folder-close-alt');
+            icon.addClass('icon-folder-open-alt');
+          } else {
+            icon.removeClass('icon-folder-open-alt');
+            icon.addClass('icon-folder-close-alt');
+          }
+          return self.$list.animate({
+            scrollTop: $(_this).offset().top + (self.$list.scrollTop() - self.$list.offset().top)
+          }, 50);
+        });
+      });
+      return this.$list.append($group);
+    };
+
     return BttrMultiselect;
 
   })(AbstractBttr);
@@ -517,7 +558,6 @@
           return $this.data('bttrmultiselect', instance);
         } else {
           publicMethods = ['open', 'close'];
-          console.log($.inArray(options, publicMethods));
           if (typeof options === 'string' && $.inArray(options, publicMethods) !== -1) {
             console.log('Running method ' + options);
             return $this.data('bttrmultiselect')[options]();
