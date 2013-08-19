@@ -4,45 +4,6 @@
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  Array.prototype.searchSubstring = function(term) {
-    var i, j, r, _i, _len, _results;
-    r = new RegExp(term, 'i');
-    _results = [];
-    for (j = _i = 0, _len = this.length; _i < _len; j = ++_i) {
-      i = this[j];
-      if (r.test(i)) {
-        _results.push(j);
-      } else {
-        continue;
-      }
-    }
-    return _results;
-  };
-
-  Array.prototype.binarySearch = function(find, comparator) {
-    var comparison, high, i, low;
-    low = 0;
-    high = this.length - 1;
-    console.log(find, 'find');
-    while (low <= high) {
-      console.log(high, 'high');
-      console.log(low, 'low');
-      i = Math.floor((low + high) / 2);
-      comparison = comparator(this[i], find);
-      console.log(comparison, 'comparison');
-      if (comparison < 0) {
-        low = i + 1;
-        continue;
-      }
-      if (comparison > 0) {
-        high = i - 1;
-        continue;
-      }
-      return this[i];
-    }
-    return null;
-  };
-
   BttrMultiselectParser = (function() {
     function BttrMultiselectParser(select) {
       var child, index, _i, _len, _ref;
@@ -72,6 +33,7 @@
       g = {
         group: true,
         childNodesIndex: index,
+        index: array_index,
         text: group.label,
         disabled: group.disabled,
         children: []
@@ -128,6 +90,7 @@
       $.extend(this.options, this._getDefaultOptions(), this.options);
       this.$bttrSelect = $(this._getTemplate());
       this.$button = this.$bttrSelect.find('a.bttrmultiselect-button');
+      this.$actions = this.$bttrSelect.find('ul.bttrmultiselect-actions');
       this.$search = this.$bttrSelect.find('div.bttrmultiselect-search input');
       this.$list = this.$bttrSelect.find('ul.bttrmultiselect-list');
       this.$selectedList = this.$bttrSelect.find('ul.bttrmultiselect-selected-list');
@@ -169,7 +132,7 @@
     };
 
     AbstractBttr.prototype._getTemplate = function() {
-      return "<div class='bttrmultiselect'>\n	<div class='bttrmultiselect-inner'>\n		<a href=\"javascript:void(0)\" class='bttrmultiselect-button'>\n			<span class=\"bttrmultiselect-selected\"></span>\n			<b></b>\n		</a>\n		<div class='bttrmultiselect-content'>\n			<div class='bttrmultiselect-search'>\n				<input type=\"text\" />\n			</div>\n			<ul class='bttrmultiselect-list'></ul>\n			<ul class='bttrmultiselect-selected-list'></ul>\n		</div>\n	</div>\n</div>";
+      return "<div class='bttrmultiselect'>\n	<div class='bttrmultiselect-inner'>\n		<a href=\"javascript:void(0)\" class='bttrmultiselect-button'>\n			<span class=\"bttrmultiselect-selected\"></span>\n			<b></b>\n		</a>\n		<div class='bttrmultiselect-content'>\n			<ul class='bttrmultiselect-actions'>\n				<li><i class='icon-search'></i></li>\n			</ul>\n			<div class='bttrmultiselect-search'>\n				<input type=\"text\" />\n			</div>\n			<ul class='bttrmultiselect-list'></ul>\n			<ul class='bttrmultiselect-selected-list'></ul>\n		</div>\n	</div>\n</div>";
     };
 
     AbstractBttr.prototype._bindEvents = function() {
@@ -240,12 +203,12 @@
         node = _ref[index];
         if (node.group) {
           if (node.children.length > 0) {
-            _results.push(this._injectGroup(index, node));
+            _results.push(this._injectGroup(node));
           } else {
             _results.push(void 0);
           }
         } else if (!node.empty) {
-          _results.push(this._injectOption(index, node));
+          _results.push(this._injectOption(node));
         } else {
           _results.push(void 0);
         }
@@ -253,37 +216,25 @@
       return _results;
     };
 
-    AbstractBttr.prototype._injectGroup = function(groupIndex, group) {
-      var $group, classes, self;
-      classes = [];
-      classes.push("bttr-group");
-      if (group.disabled) {
-        classes.push("bttr-group-disabled");
-      }
-      $group = $("<li data-groupindex=\"" + groupIndex + "\" class=\"" + (classes.join(' ')) + "\">\n	<div class=\"bttr-group-label\">\n		<i class=\"icon-folder-close-alt\"></i> " + group.text + "\n		<span>" + group.children.length + "</span>\n	</div>\n	<ul class=\"bttr-options\" style=\"display:none\"></ul>\n</li>");
+    AbstractBttr.prototype._injectGroup = function(group) {
+      var $group, self;
+      $group = this.formatGroup(group);
       self = this;
-      $group.find('input').click(function(event) {
-        event.stopPropagation();
-        self.$bttrSelect.trigger('onBeforeGroupSelection', [$group, $(this), self]);
-        self._registerNode($(this), group);
-        self.$bttrSelect.trigger('onGroupSelection', [$group, $(this), self]);
-        return self.$select.trigger('change', [event]);
-      });
       $group.find('.bttr-group-label').click(function(event) {
-        var icon, index, option, _i, _len, _ref,
+        var icon, option, _i, _len, _ref,
           _this = this;
         icon = $(this).find('i');
-        if (!$(this).hasClass('optionsLoaded')) {
+        if (!$group.hasClass('optionsLoaded')) {
           icon.removeClass('icon-folder-close-alt');
           icon.addClass('icon-spinner icon-spin');
           _ref = group.children;
-          for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
-            option = _ref[index];
-            self._injectOption(index, option, groupIndex, $group);
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            option = _ref[_i];
+            self._injectOption(option, $group);
           }
           icon.removeClass('icon-spinner icon-spin');
           icon.addClass('icon-folder-close-alt');
-          $(this).addClass('optionsLoaded');
+          $group.addClass('optionsLoaded');
         }
         return $group.find('ul.bttr-options').toggle(100, function() {
           if (icon.hasClass('icon-folder-close-alt')) {
@@ -301,20 +252,9 @@
       return this.$list.append($group);
     };
 
-    AbstractBttr.prototype._injectOption = function(index, option, groupIndex, $group) {
-      var $option, classes, self;
-      classes = [];
-      classes.push("bttr-option");
-      if (option.disabled) {
-        classes.push("bttr-option-disabled");
-      }
-      if (option.selected) {
-        classes.push("bttr-option-selected");
-      }
-      $option = $("<li data-groupindex=\"" + groupIndex + "\" data-optionindex=\"" + index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div>" + option.text + "</div>\n</li>");
-      if (option.groupindex) {
-        $option.attr('data-groupindex', option.groupindex);
-      }
+    AbstractBttr.prototype._injectOption = function(option, $group) {
+      var $option, self;
+      $option = this.formatOption(option);
       self = this;
       $option.click(function(event) {
         self.$bttrSelect.trigger('onBeforeOptionSelection', [$(this), self]);
@@ -336,18 +276,21 @@
       return this.parsed = true;
     };
 
-    AbstractBttr.prototype._addOptionToSelectedList = function($option, option) {
-      var $optionClone,
+    AbstractBttr.prototype._addOptionToSelectedList = function($option, option, $group) {
+      var $selectedOption,
         _this = this;
-      $optionClone = $option.clone();
       $option.addClass('bttr-option-selected');
-      $optionClone.append($('<a class="bttrmultiselect-option-remove"><i class="icon-remove"></i></a>').on('click', function(event) {
+      $selectedOption = this.formatSelectedOption(option);
+      $selectedOption.delegate('.bttrmultiselect-option-remove', 'click', function(event) {
         event.stopPropagation();
         _this._unRegisterNode(option);
         $option.removeClass('bttr-option-selected');
-        return $optionClone.remove();
-      }));
-      return this.$selectedList.append($optionClone);
+        if ($group) {
+          $group.removeClass('bttr-group-selected');
+        }
+        return $selectedOption.remove();
+      });
+      return this.$selectedList.append($selectedOption);
     };
 
     AbstractBttr.prototype._unRegisterNode = function(node) {
@@ -372,13 +315,16 @@
         _ref = node.children;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           option = _ref[_i];
-          console.log(groupNode.childNodes[option.childNodesIndex].selected);
+          if (!$node.hasClass('optionsLoaded')) {
+            this._injectOption(option, $node);
+          }
           if (!groupNode.childNodes[option.childNodesIndex].selected) {
             groupNode.childNodes[option.childNodesIndex].selected = true;
-            this._addOptionToSelectedList($node.find("[data-optionindex=" + option.index + "]"), option);
+            this._addOptionToSelectedList($node.find("[data-optionindex=" + option.index + "]"), option, $node);
             this.selected.push(option);
           }
         }
+        $node.addClass('optionsLoaded');
         $node.addClass('bttr-group-selected');
       } else {
         ref = this.select;
@@ -425,6 +371,45 @@
       console.log('refreshing');
       this.selected = [];
       return this._parse();
+    };
+
+    AbstractBttr.prototype.formatGroup = function(group) {
+      var $group, classes;
+      classes = [];
+      classes.push("bttr-group");
+      if (group.disabled) {
+        classes.push("bttr-group-disabled");
+      }
+      $group = $("<li data-groupindex=\"" + group.index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div class=\"bttr-group-label\">\n		<i class=\"icon-folder-close-alt\"></i> " + group.text + "\n		<span>" + group.children.length + "</span>\n	</div>\n	<ul class=\"bttr-options\" style=\"display:none\"></ul>\n</li>");
+      return $group;
+    };
+
+    AbstractBttr.prototype.formatOption = function(option) {
+      var $option, classes;
+      console.log('formating option');
+      classes = [];
+      classes.push("bttr-option");
+      if (option.disabled) {
+        classes.push("bttr-option-disabled");
+      }
+      if (option.selected) {
+        classes.push("bttr-option-selected");
+      }
+      $option = $("<li data-optionindex=\"" + option.index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div>" + option.text + "</div>\n</li>");
+      if (option.groupindex) {
+        $option.attr('data-groupindex', option.groupindex);
+      }
+      return $option;
+    };
+
+    AbstractBttr.prototype.formatSelectedOption = function(option) {
+      var $option;
+      console.log('formating selected option');
+      $option = $("<li data-optionindex=\"" + option.index + "\">\n	<span>" + option.text + "</span>\n	<a class=\"bttrmultiselect-option-remove\"><i class=\"icon-remove\"></i></a>\n</li>");
+      if (option.groupindex) {
+        $option.attr('data-groupindex', option.groupindex);
+      }
+      return $option;
     };
 
     AbstractBttr.prototype.checkAll = function() {
@@ -481,55 +466,26 @@
       return _ref1;
     }
 
-    BttrMultiselect.prototype._injectGroup = function(groupIndex, group) {
-      var $group, classes, self;
+    BttrMultiselect.prototype.formatGroup = function(group) {
+      var $group, classes,
+        _this = this;
       classes = [];
       classes.push("bttr-group");
       if (group.disabled) {
         classes.push("bttr-group-disabled");
       }
-      $group = $("<li data-groupindex=\"" + groupIndex + "\" class=\"" + (classes.join(' ')) + "\">\n	<div class=\"bttr-group-label\">\n		<i class=\"icon-folder-close-alt\"></i> " + group.text + "\n		<span>" + group.children.length + "</span>\n	</div>\n	<ul class=\"bttr-options\" style=\"display:none\"></ul>\n</li>");
+      $group = $("<li data-groupindex=\"" + group.index + "\" class=\"" + (classes.join(' ')) + "\">\n	<div class=\"bttr-group-label\">\n		<i class=\"icon-folder-close-alt\"></i> " + group.text + "\n		<span>" + group.children.length + "</span>\n	</div>\n	<ul class=\"bttr-options\" style=\"display:none\"></ul>\n</li>");
       if (!group.disabled) {
         $group.find('.bttr-group-label').append($('<input type="checkbox">'));
       }
-      self = this;
       $group.find('input').click(function(event) {
         event.stopPropagation();
-        self.$bttrSelect.trigger('onBeforeGroupSelection', [$group, $(this), self]);
-        self._registerNode($(this), group);
-        self.$bttrSelect.trigger('onGroupSelection', [$group, $(this), self]);
-        return self.$select.trigger('change', [event]);
+        _this.$bttrSelect.trigger('onBeforeGroupSelection', [$group, $(event.currentTarget), self]);
+        _this._registerNode($group, group);
+        _this.$bttrSelect.trigger('onGroupSelection', [$group, $(event.currentTarget), self]);
+        return _this.$select.trigger('change', [event]);
       });
-      $group.find('.bttr-group-label').click(function(event) {
-        var icon, index, option, _i, _len, _ref2,
-          _this = this;
-        icon = $(this).find('i');
-        if (!$(this).hasClass('optionsLoaded')) {
-          icon.removeClass('icon-folder-close-alt');
-          icon.addClass('icon-spinner icon-spin');
-          _ref2 = group.children;
-          for (index = _i = 0, _len = _ref2.length; _i < _len; index = ++_i) {
-            option = _ref2[index];
-            self._injectOption(index, option, groupIndex, $group);
-          }
-          icon.removeClass('icon-spinner icon-spin');
-          icon.addClass('icon-folder-close-alt');
-          $(this).addClass('optionsLoaded');
-        }
-        return $group.find('ul.bttr-options').toggle(100, function() {
-          if (icon.hasClass('icon-folder-close-alt')) {
-            icon.removeClass('icon-folder-close-alt');
-            icon.addClass('icon-folder-open-alt');
-          } else {
-            icon.removeClass('icon-folder-open-alt');
-            icon.addClass('icon-folder-close-alt');
-          }
-          return self.$list.animate({
-            scrollTop: $(_this).offset().top + (self.$list.scrollTop() - self.$list.offset().top)
-          }, 50);
-        });
-      });
-      return this.$list.append($group);
+      return $group;
     };
 
     return BttrMultiselect;

@@ -30,6 +30,7 @@
       g = {
         group: true,
         childNodesIndex: index,
+        index: array_index,
         text: group.label,
         disabled: group.disabled,
         children: []

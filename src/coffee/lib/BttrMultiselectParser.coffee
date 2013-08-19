@@ -18,7 +18,8 @@ class BttrMultiselectParser
 		
 		g = 
 			group: true
-			childNodesIndex: index
+			childNodesIndex: index,
+			index: array_index,
 			text: group.label
 			disabled: group.disabled
 			children: []

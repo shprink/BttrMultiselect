@@ -8,6 +8,7 @@ class AbstractBttr
 		# We create our elements
 		@$bttrSelect = $(@_getTemplate())
 		@$button = @$bttrSelect.find('a.bttrmultiselect-button')
+		@$actions = @$bttrSelect.find('ul.bttrmultiselect-actions')
 		@$search = @$bttrSelect.find('div.bttrmultiselect-search input')
 		@$list = @$bttrSelect.find('ul.bttrmultiselect-list')
 		@$selectedList = @$bttrSelect.find('ul.bttrmultiselect-selected-list')
@@ -64,6 +65,9 @@ class AbstractBttr
 					<b></b>
 				</a>
 				<div class='bttrmultiselect-content'>
+					<ul class='bttrmultiselect-actions'>
+						<li><i class='icon-search'></i></li>
+					</ul>
 					<div class='bttrmultiselect-search'>
 						<input type="text" />
 					</div>
@@ -132,51 +136,26 @@ class AbstractBttr
 			if node.group
 				# No need to display empty groups
 				if node.children.length > 0
-					@_injectGroup index, node
+					@_injectGroup node
 			else if !node.empty
-				@_injectOption index, node
+				@_injectOption node
 
-	_injectGroup: (groupIndex, group) ->
-		classes = []
-		classes.push "bttr-group"
-		classes.push "bttr-group-disabled" if group.disabled
-
-		$group = $("""
-		<li data-groupindex="#{ groupIndex }" class="#{ classes.join(' ') }">
-			<div class="bttr-group-label">
-				<i class="icon-folder-close-alt"></i> #{ group.text }
-				<span>#{ group.children.length }</span>
-			</div>
-			<ul class="bttr-options" style="display:none"></ul>
-		</li>
-		""")
+	_injectGroup: (group) ->
+		$group = @formatGroup group;
 
 		self = this
-		$group.find('input').click (event)->
-			event.stopPropagation()
-			self.$bttrSelect.trigger('onBeforeGroupSelection', [$group, $(this), self])						
-
-			# Add Node to the wish list
-			self._registerNode $(this), group
-
-			# Remove node
-			self.$bttrSelect.trigger('onGroupSelection', [$group, $(this), self])						
-
-			# trigger the select change event
-			self.$select.trigger('change', [event]);
-
 		$group.find('.bttr-group-label').click (event)->
 			icon = $(this).find('i')
 			# Then doing the same for each children
-			if !$(this).hasClass 'optionsLoaded'
+			if !$group.hasClass 'optionsLoaded'
 				# Adding a loading class
 				icon.removeClass 'icon-folder-close-alt'
 				icon.addClass 'icon-spinner icon-spin'
-				self._injectOption index, option, groupIndex, $group for option, index in group.children
+				self._injectOption option, $group for option in group.children
 				# Removing the loading class
 				icon.removeClass 'icon-spinner icon-spin'
 				icon.addClass 'icon-folder-close-alt'
-				$(this).addClass 'optionsLoaded'
+				$group.addClass 'optionsLoaded'
 
 			$group.find('ul.bttr-options').toggle 100, ()=>
 				if icon.hasClass 'icon-folder-close-alt'
@@ -193,20 +172,8 @@ class AbstractBttr
 		# inject the group to the DOM
 		@$list.append $group
 
-	_injectOption: (index, option, groupIndex, $group) ->
-		classes = []
-		classes.push "bttr-option"
-		classes.push "bttr-option-disabled" if option.disabled
-		classes.push "bttr-option-selected" if option.selected
-
-		$option = $("""
-		<li data-groupindex="#{ groupIndex }" data-optionindex="#{ index }" class="#{ classes.join(' ') }">
-			<div>#{ option.text }</div>
-		</li>
-		""")
-
-		if option.groupindex
-			$option.attr('data-groupindex', option.groupindex)
+	_injectOption: (option, $group) ->
+		$option = @formatOption option;
 
 		self = this
 		$option.click (event)->
@@ -228,21 +195,23 @@ class AbstractBttr
 		console.log @data.parsed, 'select parsed'
 		@_injectNodes();
 		@parsed = true
-	
-	_addOptionToSelectedList: ($option, option)->
-		$optionClone = $option.clone()
+
+	_addOptionToSelectedList: ($option, option, $group)->
 
 		# Hide the selected option
-		$option.addClass('bttr-option-selected')
+		$option.addClass 'bttr-option-selected'
 
-		$optionClone.append $('<a class="bttrmultiselect-option-remove"><i class="icon-remove"></i></a>')
-			.on 'click', (event)=>
-				event.stopPropagation()
-				@_unRegisterNode(option)
-				$option.removeClass('bttr-option-selected')
-				$optionClone.remove()
+		$selectedOption = @formatSelectedOption option;
 
-			@$selectedList.append($optionClone);
+		$selectedOption.delegate '.bttrmultiselect-option-remove', 'click', (event)=>
+			event.stopPropagation()
+			@_unRegisterNode(option)
+			$option.removeClass('bttr-option-selected')
+			if $group
+				$group.removeClass('bttr-group-selected')
+			$selectedOption.remove()
+
+		@$selectedList.append($selectedOption);
 
 	_unRegisterNode: (node) ->
 		ref = @select
@@ -262,18 +231,19 @@ class AbstractBttr
 		console.log @selected, '_unRegisterNode'
 	
 	_registerNode: ($node, node) ->
-	
 		if node.group
 			# Get the group element
 			groupNode = @select.childNodes[node.childNodesIndex]
 			for option in node.children
+				if !$node.hasClass 'optionsLoaded'
+					@_injectOption option, $node
 				# Select the option within the group
-				console.log groupNode.childNodes[option.childNodesIndex].selected
 				if !groupNode.childNodes[option.childNodesIndex].selected
 					groupNode.childNodes[option.childNodesIndex].selected = true
-					@_addOptionToSelectedList($node.find("[data-optionindex=#{ option.index }]"), option)
+					@_addOptionToSelectedList($node.find("[data-optionindex=#{ option.index }]"), option, $node)
 					@selected.push(option)
-			$node.addClass('bttr-group-selected')
+			$node.addClass 'optionsLoaded'
+			$node.addClass 'bttr-group-selected'
 		else
 			ref = @select
 			if node.groupChildNodesIndex
@@ -316,6 +286,56 @@ class AbstractBttr
 		console.log 'refreshing'
 		@selected = []
 		@_parse()
+		
+	formatGroup: (group) ->
+		classes = []
+		classes.push "bttr-group"
+		classes.push "bttr-group-disabled" if group.disabled
+
+		$group = $("""
+		<li data-groupindex="#{ group.index }" class="#{ classes.join(' ') }">
+			<div class="bttr-group-label">
+				<i class="icon-folder-close-alt"></i> #{ group.text }
+				<span>#{ group.children.length }</span>
+			</div>
+			<ul class="bttr-options" style="display:none"></ul>
+		</li>
+		""")
+
+		return $group
+
+	formatOption: (option) ->
+		console.log 'formating option'
+
+		classes = []
+		classes.push "bttr-option"
+		classes.push "bttr-option-disabled" if option.disabled
+		classes.push "bttr-option-selected" if option.selected
+
+		$option = $("""
+		<li data-optionindex="#{ option.index }" class="#{ classes.join(' ') }">
+			<div>#{ option.text }</div>
+		</li>
+		""")
+
+		if option.groupindex
+			$option.attr('data-groupindex', option.groupindex)
+			
+		return $option
+	
+	formatSelectedOption: (option) ->
+		console.log 'formating selected option'
+		$option = $("""
+		<li data-optionindex="#{ option.index }">
+			<span>#{ option.text }</span>
+			<a class="bttrmultiselect-option-remove"><i class="icon-remove"></i></a>
+		</li>
+		""")
+
+		if option.groupindex
+			$option.attr('data-groupindex', option.groupindex)
+		
+		return $option
 
 	checkAll: () ->
 		console.log 'checking all'
